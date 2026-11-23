@@ -1,0 +1,65 @@
+classDiagram
+    class DisputeVerifier {
+        <<library>>
+        +hmacSha256(key, message) bytes32
+        +keystreamWord(kEnc, i, j) bytes32
+        +decryptBlock(kEnc, i, C_i) bytes
+        +verifyMerkle(root, leaf, index, proof) bool
+        +keyCommitment(K, N, s) bytes32
+        +plainLeaf(i, D_i) bytes32
+        +cipherLeaf(i, C_i) bytes32
+        +checkConsistency(R_D, R_C, cK, K, N, s, i, C_i, leafD, proofD, proofC) bool
+    }
+
+    class AssetRegistry {
+        +list(...) uint256
+        +deactivate(assetId, reason)
+        +get(assetId) Asset
+        +isActive(assetId) bool
+        +sellerOf(assetId) address
+        +parentOf(assetId) uint256
+        +royaltyOf(assetId) uint16
+        -_assets mapping
+        -nextAssetId uint256
+    }
+
+    class SaleEscrow {
+        +buy(assetId) uint256
+        +deliver(saleId, encK)
+        +confirm(saleId)
+        +disputeMode1(saleId, proof)
+        +disputeMode2(saleId)
+        +respond(saleId, K, N, s)
+        +timeoutDeliver(saleId)
+        +timeoutConfirm(saleId)
+        +timeoutRespond(saleId)
+        +depositBond()
+        +withdrawBondCredit()
+        +getSale(saleId) Sale
+        -_sales mapping
+        -sellerCredit mapping
+        -nextSaleId uint256
+    }
+
+    class RoyaltySplitter {
+        +credit(account, amount)
+        +withdraw()
+        +creditOf(account) uint256
+        -credits mapping
+        -escrow address
+    }
+
+    class LicenceToken {
+        +mint(to, assetId)
+        +setMinter(minter)
+        -minter address
+        +balanceOf(account, id) uint256
+    }
+
+    SaleEscrow --> AssetRegistry : reads asset
+    SaleEscrow --> RoyaltySplitter : credits royalty
+    SaleEscrow --> LicenceToken : mints licence
+    SaleEscrow --> DisputeVerifier : uses library
+    RoyaltySplitter --> SaleEscrow : onlyEscrow
+    LicenceToken --> SaleEscrow : onlyMinter
+    SaleEscrow ..> AssetRegistry : parentAssetId

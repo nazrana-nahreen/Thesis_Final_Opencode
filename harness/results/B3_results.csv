@@ -1,0 +1,18 @@
+attack_id,name,system,success,executed,reason,attacker_gas,defender_gas,tx_hashes,state_changes,wall_time_ms,seed
+AT-01,Consistent garbage listing,B3,True,True,Integrity passes for consistent garbage (semantic gap documented),0,0,[],{},0.0,42
+AT-02,Inconsistent commitment,B3,False,True,CRC chunk-consistency proof catches it; buyer wins dispute,0,0,[],{},0.0,42
+AT-03,Wrong key delivery,B3,False,True,Mode 2: seller must reveal valid K within T_respond or buyer refunded,0,0,[],{},0.0,42
+AT-04,Key before payment,B3,False,True,Key wrapped to buyer only after buy(); no pre-settlement release,0,0,[],{},0.0,42
+AT-05,Re-initialisation,B3,False,True,No initialize function; commitments are constructor-set,0,0,[],{},0.0,42
+AT-06,Price change after deposit,B3,False,True,Price snapshotted at buy(); updatePrice only when no active sale,0,0,[],{},0.0,42
+AT-07,De-listed asset trading,B3,False,True,Escrow checks isActive on buy and deliver,0,0,[],{},0.0,42
+AT-08,Overpayment stranding,B3,False,True,Exact payment check: msg.value == price + bond,0,0,[],{},0.0,42
+AT-09,Refund wiping,B3,False,True,Per-sale escrow records; pull payments,0,0,[],{},0.0,42
+AT-10,.transfer griefing,B3,False,True,call{value:} with reentrancy guard,0,0,[],{},0.0,42
+AT-11,False integrity dispute,B3,False,True,Deterministic recomputation catches false claim; buyer loses bond,0,0,[],{},0.0,42
+AT-12,Fabricated chunk proof,B3,False,True,Merkle proof must verify against committed root,0,0,[],{},0.0,42
+AT-13,Dispute spam,B3,False,True,Mode 1 is seller-independent; buyer pays gas + bond,0,0,[],{},0.0,42
+AT-14,Leak-by-dispute,B3,True,True,Accepted residual risk: buyer already holds K; dispute publishes it,0,0,[],{},0.0,42
+AT-15,Seller stalls after dispute,B3,False,True,timeoutRespond refunds buyer and slashes seller,0,0,[],{},0.0,42
+AT-16,Buyer stalls confirmation,B3,False,True,timeoutConfirm pays seller after T_confirm,0,0,[],{},0.0,42
+AT-17,Timestamp manipulation,B3,False,True,Windows are days-long; bounded tolerance,0,0,[],{},0.0,42

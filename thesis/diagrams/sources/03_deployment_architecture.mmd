@@ -1,0 +1,37 @@
+graph TB
+    subgraph "Developer Machine (Windows 11)"
+        subgraph "Ports"
+            P8545["Port 8545<br/>Anvil RPC"]
+            P5001["Port 5001<br/>IPFS API"]
+            P8080["Port 8080<br/>IPFS Gateway"]
+            P3001["Port 3001<br/>Fastify API"]
+        end
+
+        ANVIL[Anvil v1.10.0<br/>Chain ID 31337<br/>10 accounts, 10000 ETH each]
+        KUBO[Kubo v0.32.1<br/>IPFS Daemon]
+        FASTIFY[Fastify API<br/>Node 22.14.0<br/>TypeScript]
+        CLI[CLI<br/>npx tsx cli.ts]
+    end
+
+    subgraph "Smart Contracts (deployed on Anvil)"
+        AR[AssetRegistry]
+        SE[SaleEscrow]
+        RS[RoyaltySplitter]
+        LT[LicenceToken]
+    end
+
+    ANVIL --- P8545
+    KUBO --- P5001
+    KUBO --- P8080
+    FASTIFY --- P3001
+
+    FASTIFY -->|viem RPC| ANVIL
+    FASTIFY -->|HTTP API| KUBO
+    CLI -->|HTTP| FASTIFY
+    ANVIL -->|contracts| AR
+    ANVIL -->|contracts| SE
+    ANVIL -->|contracts| RS
+    ANVIL -->|contracts| LT
+
+    note1["Development only.<br/>Production would use<br/>Ethereum L1/L2 +<br/>distributed IPFS."]
+    note1 -.-> ANVIL

@@ -1,0 +1,27 @@
+flowchart TD
+    A["Buyer receives D'"] --> B{"H(D') == hD?"}
+    B -->|Yes| C["confirm() -> SETTLED"]
+    B -->|No| D["disputeMode1(saleId, proof)"]
+
+    D --> E["Proof contains: K, N, s, index i, C_i, leafD, proofD, proofC"]
+
+    E --> F{"keyCommitment(K,N,s) == cK?"}
+    F -->|No| G["REVERT: bad key commitment"]
+    F -->|Yes| H{"verifyMerkle(R_C, cipherLeaf(i,C_i), i, proofC)?"}
+    H -->|No| I["REVERT: bad cipher proof"]
+    H -->|Yes| J{"verifyMerkle(R_D, leafD, i, proofD)?"}
+    J -->|No| K["REVERT: bad plain proof"]
+    J -->|Yes| L["Recompute: D_i = C_i XOR HMAC(K_enc, i)"]
+
+    L --> M{"recomputed == leafD?"}
+    M -->|Yes - Consistent| N["Seller wins: paid, buyer bond forfeited, licence minted"]
+    M -->|No - Inconsistent| O["Buyer wins: refunded price + bond, seller bond slashed"]
+
+    style A fill:#F8FAFC
+    style C fill:#D1FAE5
+    style N fill:#FEF3C7
+    style O fill:#FEE2E2
+    style G fill:#FEE2E2
+    style I fill:#FEE2E2
+    style K fill:#FEE2E2
+EOF

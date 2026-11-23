@@ -1,0 +1,78 @@
+flowchart LR
+    subgraph "Attacks (AT-01..AT-17)"
+        A1[AT-01 Consistent garbage]
+        A2[AT-02 Inconsistent commitment]
+        A3[AT-03 Wrong key]
+        A4[AT-04 Key before payment]
+        A5[AT-05 Re-init]
+        A6[AT-06 Price change]
+        A7[AT-07 De-listed trading]
+        A8[AT-08 Overpayment]
+        A9[AT-09 Refund wipe]
+        A10[AT-10 .transfer grief]
+        A11[AT-11 False dispute]
+        A12[AT-12 Fabricated proof]
+        A13[AT-13 Dispute spam]
+        A14[AT-14 Leak-by-dispute]
+        A15[AT-15 Seller stalls]
+        A16[AT-16 Buyer stalls]
+        A17[AT-17 Timestamp manip]
+    end
+
+    subgraph "Defenses"
+        D1[Preview + pHash + bond]
+        D2[CRC chunk-consistency proof]
+        D3[Mode 2: seller must reveal valid K]
+        D4[No pre-settlement key release]
+        D5[No initialize function]
+        D6[Price snapshot at buy]
+        D7[isActive check in buy/deliver]
+        D8[Exact payment check]
+        D9[Per-sale escrow]
+        D10[call value + reentrancy guard]
+        D11[Deterministic recomputation]
+        D12[Merkle proof verification]
+        D13[Mode 1: no seller response needed]
+        D14[Accepted residual risk]
+        D15[timeoutRespond]
+        D16[timeoutConfirm]
+        D17[Bounded time windows]
+    end
+
+    A1 --> D1
+    A2 --> D2
+    A3 --> D3
+    A4 --> D4
+    A5 --> D5
+    A6 --> D6
+    A7 --> D7
+    A8 --> D8
+    A9 --> D9
+    A10 --> D10
+    A11 --> D11
+    A12 --> D12
+    A13 --> D13
+    A14 --> D14
+    A15 --> D15
+    A16 --> D16
+    A17 --> D17
+
+    style A1 fill:#FEE2E2
+    style A14 fill:#FEF3C7
+    style D14 fill:#FEF3C7
+    style D1 fill:#D1FAE5
+    style D2 fill:#D1FAE5
+    style D3 fill:#D1FAE5
+    style D4 fill:#D1FAE5
+    style D5 fill:#D1FAE5
+    style D6 fill:#D1FAE5
+    style D7 fill:#D1FAE5
+    style D8 fill:#D1FAE5
+    style D9 fill:#D1FAE5
+    style D10 fill:#D1FAE5
+    style D11 fill:#D1FAE5
+    style D12 fill:#D1FAE5
+    style D13 fill:#D1FAE5
+    style D15 fill:#D1FAE5
+    style D16 fill:#D1FAE5
+    style D17 fill:#D1FAE5

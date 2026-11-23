@@ -1,0 +1,51 @@
+graph TB
+    subgraph "Layer 1: User Interaction"
+        S[Seller]
+        B[Buyer]
+        CLI[CLI - cli.ts]
+    end
+
+    subgraph "Layer 2: Application / API"
+        API[Fastify REST API<br/>16 endpoints]
+        VAL[Request Validation<br/>Zod schemas]
+        RL[Rate Limiting]
+    end
+
+    subgraph "Layer 3: Cryptographic & Content Processing"
+        ENC[AES/HMAC-CTR Encryption]
+        MERKLE[Merkle Tree Builder]
+        ECIES[ECIES Key Wrapping<br/>eciesjs]
+        HASH[SHA-256 Commitments]
+        PHASH[pHash / Fingerprint]
+    end
+
+    subgraph "Layer 4: Decentralized Storage"
+        IPFS[IPFS Kubo<br/>Upload, Pin, Retrieve, Verify]
+    end
+
+    subgraph "Layer 5: Blockchain & Smart Contracts"
+        AR[AssetRegistry]
+        SE[SaleEscrow]
+        RS[RoyaltySplitter]
+        LT[LicenceToken]
+        DV[DisputeVerifier library]
+    end
+
+    S --> API
+    B --> API
+    CLI --> API
+    API --> VAL
+    VAL --> API
+    API --> ENC
+    API --> MERKLE
+    API --> ECIES
+    API --> HASH
+    API --> IPFS
+    API --> SE
+    API --> AR
+    API --> RS
+    API --> LT
+    SE --> DV
+    SE --> AR
+    SE --> RS
+    SE --> LT

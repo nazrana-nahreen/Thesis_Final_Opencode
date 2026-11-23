@@ -1,0 +1,23 @@
+flowchart TD
+    A[Seller has plaintext D] --> B["Generate K (256-bit), N (128-bit), s (256-bit)"]
+    B --> C["C = HMAC-CTR(K, D)<br/>K_enc = HMAC(K, 0x01)"]
+    C --> D["Commitments:<br/>hD = SHA256(D)<br/>hC = SHA256(C)<br/>cK = SHA256(K concat N concat s)"]
+    D --> E[Upload C to IPFS<br/>get CID]
+    E --> F[List on-chain:<br/>hD, hC, R_D, R_C, cK, CID, price]
+
+    F --> G["Buyer pays: buy(assetId)"]
+    G --> H["Deliver: encK = ECIES to buyer pubkey, stored on-chain"]
+    H --> I["Buyer: unwrap K via ECIES"]
+    I --> J["Buyer: D' = HMAC-CTR-decrypt(K, C)"]
+    J --> K["Buyer: verify H(D') == hD"]
+
+    K -->|Match| L["confirm() -> SETTLED, K stays confidential"]
+    K -->|Mismatch| M["disputeMode1() or disputeMode2()"]
+
+    M --> N[Dispute: K revealed publicly<br/>Anyone can decrypt C]
+    N --> O[CONFIDENTIALITY LOST<br/>on dispute path]
+
+    style A fill:#F8FAFC
+    style L fill:#D1FAE5
+    style O fill:#FEE2E2
+    style N fill:#FEE2E2

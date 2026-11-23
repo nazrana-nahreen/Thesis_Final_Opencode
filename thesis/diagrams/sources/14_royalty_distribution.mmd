@@ -1,0 +1,17 @@
+flowchart TD
+    A[Sale confirms<br/>price = p] --> B{"parentAssetId != 0?"}
+    B -->|No| C[seller gets p<br/>no royalty]
+    B -->|Yes| D[parentAmount = p * royaltyBps / 10000<br/>sellerAmount = p - parentAmount]
+    D --> E[Pay seller: sellerAmount]
+    D --> F["Credit parent: parentAmount"]
+    E --> G[Return buyer bond to buyer]
+    F --> G
+    G --> H[Return seller bond to sellerCredit]
+    H --> I[Mint licence token to buyer]
+
+    J[Parent seller] --> K["withdraw() - transfer credit"]
+    K --> L[Pull payment pattern]
+
+    style A fill:#F8FAFC
+    style C fill:#D1FAE5
+    style L fill:#D1FAE5

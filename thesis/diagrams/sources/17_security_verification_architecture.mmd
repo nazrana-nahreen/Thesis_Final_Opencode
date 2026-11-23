@@ -1,0 +1,42 @@
+flowchart TD
+    subgraph "Solidity Layer"
+        DV[DisputeVerifier<br/>HMAC, Merkle, consistency]
+        SE[SaleEscrow<br/>state machine, bonds, timeouts]
+        AR[AssetRegistry<br/>commitments, active flag]
+    end
+
+    subgraph "Test Suites"
+        UT[Unit Tests<br/>DisputeVerifier.t.sol 7 tests]
+        CV[Crypto Vectors<br/>CryptoVectors.t.sol 10 tests<br/>RFC 4231, NIST, Merkle]
+        E2E[E2E Tests<br/>E2E.t.sol 2 tests]
+        INV[Invariant Tests<br/>Invariants.t.sol 1 test fuzz]
+        ADV[Adversarial Tests<br/>Adversarial.t.sol 27 tests<br/>AT-01..AT-17 + security]
+        GB[Gas Benchmark<br/>GasBenchmark.t.sol 12 tests]
+    end
+
+    subgraph "Off-Chain"
+        TS[TypeScript Crypto<br/>crypto.ts, encrypt.ts, keywrap.ts]
+        BE[Fastify Backend<br/>16 endpoints]
+        IPFS[IPFS Integration<br/>Kubo 0.32.1]
+    end
+
+    subgraph "Attack Harness"
+        PY[Python Harness<br/>17 attack scenarios]
+    end
+
+    UT --> DV
+    CV --> DV
+    E2E --> SE
+    E2E --> AR
+    INV --> SE
+    ADV --> SE
+    ADV --> AR
+    GB --> SE
+
+    TS -->|cross-language vectors| CV
+    BE -->|real txs| SE
+    IPFS -->|upload/retrieve| BE
+    PY -->|attack replay| SE
+
+    note1["No formal verification.<br/>No ZK proofs.<br/>No computational security proof.<br/>Proof sketches only."]
+    note1 -.-> DV

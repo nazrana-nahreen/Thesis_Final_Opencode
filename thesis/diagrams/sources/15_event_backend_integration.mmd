@@ -1,0 +1,36 @@
+flowchart TD
+    subgraph "Blockchain (Anvil)"
+        SE[SaleEscrow]
+        AR[AssetRegistry]
+    end
+
+    subgraph "Off-Chain"
+        API[Fastify API<br/>16 endpoints]
+        WATCHER[Event Watcher<br/>watcher.ts]
+        CP[Checkpoint File<br/>watcher-checkpoint.json]
+    end
+
+    SE -->|SaleCreated| WATCHER
+    SE -->|Delivered| WATCHER
+    SE -->|Settled| WATCHER
+    SE -->|Refunded| WATCHER
+    SE -->|Disputed| WATCHER
+    SE -->|Responded| WATCHER
+    SE -->|TimedOut| WATCHER
+
+    WATCHER -->|poll events| SE
+    WATCHER -->|load/save checkpoint| CP
+    WATCHER -->|timeout txs only| SE
+
+    API -->|read/write| SE
+    API -->|read| AR
+    API -->|upload/retrieve| IPFS
+
+    note1["Watcher does NOT make<br/>settlement/refund/dispute<br/>decisions. Only timeouts."]
+    note1 -.-> WATCHER
+
+    style SE fill:#FEF3C7
+    style AR fill:#FEF3C7
+    style API fill:#DBEAFE
+    style WATCHER fill:#DBEAFE
+    style CP fill:#F8FAFC

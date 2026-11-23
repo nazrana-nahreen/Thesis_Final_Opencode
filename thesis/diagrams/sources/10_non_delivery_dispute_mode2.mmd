@@ -1,0 +1,22 @@
+flowchart TD
+    A[Buyer cannot decrypt<br/>or key is wrong] --> B["disputeMode2(saleId)"]
+    B --> C[State = CHALLENGED<br/>tRespond = now + 1 day]
+
+    C --> D{Seller responds<br/>within T_respond?}
+    D -->|No| E["timeoutRespond() - Buyer refunded, seller slashed"]
+    D -->|Yes| F["respond(saleId, K, N, s)"]
+
+    F --> G{"keyCommitment(K,N,s) == cK?"}
+    G -->|No| H[REVERT: invalid key]
+    G -->|Yes| I[State = DELIVERED<br/>keyRevealed = true<br/>K is now public]
+
+    I --> J[Buyer can run Mode 1<br/>on any block]
+    J --> K{Mode 1 result?}
+    K -->|Consistent| L[Seller wins<br/>Seller paid<br/>Buyer bond returned<br/>No penalty]
+    K -->|Inconsistent| M[Buyer wins<br/>Refund + slash]
+
+    style A fill:#F8FAFC
+    style E fill:#D1FAE5
+    style L fill:#FEF3C7
+    style M fill:#FEE2E2
+    style H fill:#FEE2E2

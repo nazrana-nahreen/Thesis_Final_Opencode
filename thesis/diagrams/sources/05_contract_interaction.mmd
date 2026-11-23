@@ -1,0 +1,53 @@
+sequenceDiagram
+    participant S as Seller
+    participant B as Buyer
+    participant AR as AssetRegistry
+    participant SE as SaleEscrow
+    participant RS as RoyaltySplitter
+    participant LT as LicenceToken
+    participant IPFS as IPFS
+
+    Note over S,IPFS: Asset Registration
+    S->>AR: list(hD, hC, R_D, R_C, cK, ..., price, royalty, parent)
+    AR-->>S: assetId
+
+    Note over B,LT: Purchase & Delivery
+    B->>SE: buy(assetId) {value: price + bond}
+    SE->>AR: get(assetId), isActive(assetId)
+    S->>SE: deliver(saleId, encK)
+    SE->>AR: isActive(assetId)
+
+    Note over B,SE: Buyer Verification (off-chain)
+    B->>IPFS: fetch C
+    B->>B: verify H(C)=hC, decrypt K, verify H(D)=hD
+
+    alt Honest
+        B->>SE: confirm(saleId)
+        SE->>RS: credit(seller, price-royalty)
+        SE->>RS: credit(parent, royalty)
+        SE->>LT: mint(buyer, assetId)
+        SE-->>S: pay price
+        SE-->>B: return bond
+    else Dispute Mode 1
+        B->>SE: disputeMode1(saleId, proof)
+        SE->>SE: checkConsistency(R_D, R_C, cK, K, N, s, i, C_i, leafD, proofD, proofC)
+        alt Consistent
+            SE-->>S: pay price + buyer bond
+            SE-->>B: slash buyer bond
+        else Inconsistent
+            SE-->>B: refund price + bond
+            SE-->>B: slash seller bond
+        end
+    else Dispute Mode 2
+        B->>SE: disputeMode2(saleId)
+        S->>SE: respond(saleId, K, N, s)
+        SE->>SE: verify cK
+        SE-->>B: key revealed (content public)
+        B->>SE: disputeMode1(saleId, proof)
+    end
+
+    Note over S,RS: Royalty Withdrawal
+    S->>RS: withdraw()
+    RS-->>S: transfer credit
+    B->>RS: withdraw()
+    RS-->>B: transfer credit

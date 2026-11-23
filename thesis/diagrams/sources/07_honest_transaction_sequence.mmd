@@ -1,0 +1,47 @@
+sequenceDiagram
+    participant S as Seller
+    participant API as Fastify API
+    participant IPFS as IPFS Kubo
+    participant AR as AssetRegistry
+    participant SE as SaleEscrow
+    participant RS as RoyaltySplitter
+    participant LT as LicenceToken
+    participant B as Buyer
+
+    Note over S,IPFS: 1. Asset Registration
+    S->>API: POST /assets (file + metadata)
+    API->>API: K <- random, N <- random, s <- random
+    API->>API: C = PRF-encrypt(K, D)
+    API->>API: Merkle trees R_D, R_C
+    API->>API: hD, hC, cK
+    API->>IPFS: pin C, leaf lists, preview
+    IPFS-->>API: CIDs
+    API->>AR: list(hD, hC, R_D, R_C, cK, CIDs, price, royalty, parent)
+    AR-->>API: assetId
+    API-->>S: commitments + CIDs
+
+    Note over B,SE: 2. Purchase
+    B->>SE: buy(assetId) {value: price + bond}
+    SE->>AR: get(assetId), isActive(assetId)
+    SE-->>B: saleId
+
+    Note over S,SE: 3. Delivery
+    S->>API: deliver(saleId)
+    API->>API: encK = ECIES(B_pub, K)
+    API->>SE: deliver(saleId, encK)
+
+    Note over B,SE: 4. Buyer Verification (off-chain)
+    B->>IPFS: fetch C
+    B->>B: verify H(C) == hC
+    B->>B: K = ECIES_dec(B_sk, encK)
+    B->>B: D' = PRF-decrypt(K, C)
+    B->>B: verify H(D') == hD
+
+    Note over B,LT: 5. Confirmation & Settlement
+    B->>SE: confirm(saleId)
+    SE->>RS: credit(seller, price - royalty)
+    SE->>RS: credit(parent, royalty)
+    SE-->>S: pay price
+    SE-->>B: return bond
+    SE->>LT: mint(buyer, assetId)
+    SE-->>B: licence token

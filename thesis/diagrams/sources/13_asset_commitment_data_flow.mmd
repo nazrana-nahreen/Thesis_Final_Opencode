@@ -1,0 +1,15 @@
+flowchart TD
+    A[Original Content D] --> B[Chunk into m blocks<br/>beta = 1024 bytes]
+    B --> C["For each block i:<br/>L_i^D = SHA256(0x06 || i || D_i)<br/>L_i^C = SHA256(0x07 || i || C_i)"]
+    C --> D[Merkle root R_D<br/>over L^D leaves]
+    C --> E[Merkle root R_C<br/>over L^C leaves]
+    D --> F[Leaf lists Lambda_D, Lambda_C<br/>published on IPFS]
+    E --> F
+    F --> G["On-chain commitments:<br/>hD = SHA256(0x04 || salt_D || L || D)<br/>hC = SHA256(0x05 || salt_C || L || C)<br/>cK = SHA256(0x08 || K || N || s)<br/>R_D, R_C, m, beta<br/>price, royaltyBps, parentAssetId"]
+
+    G --> H["AssetRegistry.list() - returns assetId"]
+    H --> I[Asset active = true]
+
+    style A fill:#F8FAFC
+    style G fill:#FEF3C7
+    style I fill:#D1FAE5

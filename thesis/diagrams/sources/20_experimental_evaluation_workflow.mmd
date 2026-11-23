@@ -1,0 +1,40 @@
+flowchart TD
+    A[Experimental Evaluation] --> B[Correctness Tests]
+    A --> C[Security Attacks]
+    A --> D[Gas Measurements]
+    A --> E[Storage Measurements]
+
+    B --> B1[Unit Tests<br/>DisputeVerifier: 7]
+    B --> B2[Crypto Vectors<br/>CryptoVectors: 10]
+    B --> B3[E2E Tests<br/>E2E: 2]
+    B --> B4[Invariant Tests<br/>Invariants: 1 fuzz]
+    B1 --> B5[All Pass]
+    B2 --> B5
+    B3 --> B5
+    B4 --> B5
+
+    C --> C1[AT-01..AT-17<br/>Adversarial: 27 tests]
+    C1 --> C2[15 Blocked]
+    C1 --> C3[2 Residual<br/>documented]
+
+    D --> D1[Gas Benchmark<br/>GasBenchmark: 12 tests]
+    D1 --> D2[9 operations measured]
+    D1 --> D3[Isolated tx gas]
+
+    E --> E1["Storage: O(L+nK)<br/>vs O(nL)"]
+    E --> E2[IPFS bytes measured]
+
+    B5 --> F[Results Summary]
+    C2 --> F
+    C3 --> F
+    D2 --> F
+    D3 --> F
+    E1 --> F
+    E2 --> F
+
+    F --> G[Report Generation<br/>CSV, JSON, Markdown]
+
+    style B5 fill:#D1FAE5
+    style C2 fill:#D1FAE5
+    style C3 fill:#FEF3C7
+    style G fill:#DBEAFE

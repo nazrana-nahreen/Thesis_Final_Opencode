@@ -1,0 +1,33 @@
+flowchart TD
+    A[forge test --gas-report] --> B[Anvil Local Chain<br/>Chain ID 31337]
+    B --> C[Deploy Contracts<br/>AssetRegistry, SaleEscrow,<br/>RoyaltySplitter, LicenceToken]
+    C --> D[Execute Test Functions<br/>buy, deliver, confirm,<br/>disputeMode1, respond, timeouts]
+    D --> E[Measure Gas per TX<br/>Min, Avg, Median, Max, Calls]
+    E --> F[Gas Report Output<br/>per-function breakdown]
+    F --> G[.gas-snapshot file<br/>per-test gas values]
+    G --> H[experiments/GAS_BENCHMARK_REPORT.md]
+
+    subgraph "Measured Operations (9)"
+        I1[buy: 201,658 gas]
+        I2[deliver: 83,044 gas]
+        I3[confirm: 163,417 gas]
+        I4[disputeMode1: 324,580 gas]
+        I5[respond: 161,235 gas]
+        I6[disputeMode2: 132,030 gas]
+        I7[timeoutDeliver: 57,662 gas]
+        I8[timeoutConfirm: 164,797 gas]
+        I9[timeoutRespond: 57,199 gas]
+    end
+
+    E --> I1
+    E --> I2
+    E --> I3
+    E --> I4
+    E --> I5
+    E --> I6
+    E --> I7
+    E --> I8
+    E --> I9
+
+    style A fill:#F8FAFC
+    style H fill:#D1FAE5

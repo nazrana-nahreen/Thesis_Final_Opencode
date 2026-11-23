@@ -1,0 +1,58 @@
+graph TB
+    subgraph "User Layer"
+        S[Seller]
+        B[Buyer]
+        CLI[CLI - cli.ts]
+    end
+
+    subgraph "Off-Chain Layer"
+        API[Fastify REST API<br/>api/src/server.ts]
+        CRYPTO[Crypto Module<br/>crypto/crypto.ts<br/>crypto/encrypt.ts<br/>crypto/keywrap.ts]
+        IPFS[IPFS Kubo<br/>Port 5001/8080]
+        WATCHER[Event Watcher<br/>watcher/watcher.ts]
+    end
+
+    subgraph "On-Chain Layer - Anvil"
+        AR[AssetRegistry<br/>src/AssetRegistry.sol]
+        SE[SaleEscrow<br/>src/SaleEscrow.sol]
+        RS[RoyaltySplitter<br/>src/RoyaltySplitter.sol]
+        LT[LicenceToken<br/>src/LicenceToken.sol]
+        DV[DisputeVerifier<br/>src/DisputeVerifier.sol<br/>library]
+    end
+
+    S -->|list asset| API
+    B -->|buy/dispute| API
+    CLI -->|commands| API
+
+    API -->|encrypt, Merkle, ECIES| CRYPTO
+    API -->|upload/retrieve| IPFS
+    API -->|tx: list, buy, deliver, confirm, dispute, timeout| SE
+    API -->|read: get, isActive, sellerOf| AR
+    API -->|read: creditOf| RS
+    API -->|read: balanceOf| LT
+
+    SE -->|reads asset| AR
+    SE -->|credits royalty| RS
+    SE -->|mints licence| LT
+    SE -->|uses| DV
+    RS -->|onlyEscrow| SE
+
+    WATCHER -->|polls events| SE
+    WATCHER -->|timeout txs| SE
+    WATCHER -->|reads| AR
+
+    IPFS -->|CID, bytes| API
+    CRYPTO -->|commitments, proofs| API
+
+    style S fill:#F8FAFC,stroke:#172B4D
+    style B fill:#F8FAFC,stroke:#172B4D
+    style CLI fill:#F8FAFC,stroke:#172B4D
+    style API fill:#DBEAFE,stroke:#2563EB
+    style CRYPTO fill:#DBEAFE,stroke:#2563EB
+    style IPFS fill:#D1FAE5,stroke:#0F766E
+    style WATCHER fill:#DBEAFE,stroke:#2563EB
+    style AR fill:#FEF3C7,stroke:#F59E0B
+    style SE fill:#FEF3C7,stroke:#F59E0B
+    style RS fill:#FEF3C7,stroke:#F59E0B
+    style LT fill:#FEF3C7,stroke:#F59E0B
+    style DV fill:#FEF3C7,stroke:#F59E0B

@@ -1,0 +1,45 @@
+stateDiagram-v2
+    [*] --> ESCROWED : buy(assetId) + payment
+
+    ESCROWED --> DELIVERED : deliver(saleId, encK)<br/>seller, within T_deliver
+    ESCROWED --> REFUNDED : timeoutDeliver()<br/>now > T_deliver
+
+    DELIVERED --> SETTLED : confirm(saleId)<br/>buyer, within T_confirm
+    DELIVERED --> CHALLENGED : disputeMode2(saleId)<br/>buyer, within T_confirm
+    DELIVERED --> SETTLED : timeoutConfirm()<br/>seller, now > T_confirm
+    DELIVERED --> REFUNDED : disputeMode1() inconsistent
+
+    CHALLENGED --> DELIVERED : respond(saleId, K, N, s)<br/>seller, valid cK, within T_respond
+    CHALLENGED --> REFUNDED : timeoutRespond()<br/>now > T_respond
+
+    DELIVERED --> SETTLED : disputeMode1() consistent<br/>buyer bond forfeited
+
+    SETTLED --> [*]
+    REFUNDED --> [*]
+
+    note right of ESCROWED
+        Buyer locked price + bond.
+        Seller bond pre-funded.
+        T_deliver = now + 1 day
+    end note
+
+    note right of DELIVERED
+        encK stored.
+        T_confirm = T_deliver + 2 days
+    end note
+
+    note right of CHALLENGED
+        T_respond = now + 1 day
+        keyRevealed = false
+    end note
+
+    note right of SETTLED
+        Terminal. Seller paid.
+        Buyer bond returned (or forfeited).
+        Licence minted.
+    end note
+
+    note right of REFUNDED
+        Terminal. Buyer refunded.
+        Seller bond slashed.
+    end note

@@ -1,0 +1,42 @@
+graph TB
+    subgraph "Trusted Zone"
+        SC[Solidity Contracts<br/>AssetRegistry, SaleEscrow,<br/>DisputeVerifier, RoyaltySplitter, LicenceToken]
+        EVM[EVM / Anvil]
+    end
+
+    subgraph "Semi-Trusted Zone"
+        API[Fastify API]
+        IPFS[IPFS Kubo]
+        WATCHER[Event Watcher]
+    end
+
+    subgraph "Untrusted Zone"
+        S[Seller]
+        B[Buyer]
+        ADV[External Adversary]
+        FRONTEND[Frontend / CLI]
+    end
+
+    S -->|transactions| API
+    B -->|transactions| API
+    ADV -->|attack attempts| SC
+    ADV -->|attack attempts| API
+    ADV -->|attack attempts| IPFS
+
+    API -->|tx + RPC| EVM
+    EVM -->|state| SC
+    API -->|upload/retrieve| IPFS
+
+    S -.->|trust boundary: endpoint compromise| FRONTEND
+    B -.->|trust boundary: endpoint compromise| FRONTEND
+    IPFS -.->|trust boundary: availability| API
+
+    style SC fill:#D1FAE5,stroke:#0F766E
+    style EVM fill:#D1FAE5,stroke:#0F766E
+    style API fill:#FEF3C7,stroke:#F59E0B
+    style IPFS fill:#FEF3C7,stroke:#F59E0B
+    style WATCHER fill:#FEF3C7,stroke:#F59E0B
+    style S fill:#FEE2E2,stroke:#DC2626
+    style B fill:#FEE2E2,stroke:#DC2626
+    style ADV fill:#FEE2E2,stroke:#DC2626
+    style FRONTEND fill:#FEE2E2,stroke:#DC2626

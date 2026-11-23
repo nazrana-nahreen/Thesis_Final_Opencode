@@ -1,0 +1,22 @@
+stateDiagram-v2
+    [*] --> Listed : list()
+    Listed --> Deactivated : deactivate()
+    Listed --> Sold : buy() + confirm()
+    Deactivated --> [*]
+
+    state "Licence Issued" as LI
+    Sold --> LI : confirm() mints ERC-1155
+    LI --> [*] : licence held by buyer
+
+    note right of Listed
+        Asset exists on-chain with
+        commitments (hD, hC, R_D, R_C, cK).
+        active = true.
+    end note
+
+    note right of LI
+        ERC-1155 token minted to buyer.
+        Balance = number of licences.
+        Metadata encodes scope/duration.
+        Does NOT transfer content ownership.
+    end note

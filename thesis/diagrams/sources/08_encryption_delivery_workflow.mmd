@@ -1,0 +1,23 @@
+flowchart TD
+    A[Original Content D] --> B[Chunk into blocks<br/>beta = 1024 bytes]
+    B --> C[Generate K, N, s<br/>random 256/128/256 bit]
+    C --> D["K_enc = HMAC(K, 0x01)"]
+    D --> E["For each block i:<br/>ks_i = HMAC(K_enc, i)<br/>C_i = D_i XOR ks_i"]
+    E --> F[Merkle tree over D blocks<br/>R_D = root]
+    E --> G[Merkle tree over C blocks<br/>R_C = root]
+    F --> H["Commitments:<br/>hD = SHA256(D)<br/>hC = SHA256(C)<br/>cK = SHA256(K||N||s)"]
+    G --> H
+    H --> I[Upload C to IPFS<br/>get CID]
+    H --> J[Upload leaf lists<br/>Lambda_D, Lambda_C]
+    I --> K[Store on-chain:<br/>R_D, R_C, hD, hC, cK<br/>CID, price, royalty]
+
+    K --> L[Delivery: wrap K with ECIES<br/>to buyer public key]
+    L --> M[Buyer: fetch C from IPFS]
+    M --> N["Buyer: verify H(C) == hC"]
+    N --> O[Buyer: unwrap K via ECIES]
+    O --> P[Buyer: D' = decrypt K, C]
+    P --> Q["Buyer: verify H(D') == hD"]
+
+    style A fill:#F8FAFC
+    style K fill:#FEF3C7
+    style Q fill:#D1FAE5
