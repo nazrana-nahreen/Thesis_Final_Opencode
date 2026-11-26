@@ -69,6 +69,9 @@ cd Thesis_Final_Opencode/metatrade-r
 
 # Install dependencies
 npm install
+# If the lib/ submodules are not initialised yet:
+git submodule update --init --recursive
+# ...or install them explicitly:
 forge install foundry-rs/forge-std --no-commit
 forge install OpenZeppelin/openzeppelin-contracts --no-commit
 pip install web3
@@ -87,6 +90,8 @@ forge build
 forge test
 
 # Run backend tests (14 tests)
+# Requires Anvil + Kubo + the backend server (node dist/api/src/server.js) running.
+# The tests use 127.0.0.1 by default; override with API_BASE=...
 node --test tests/backend.test.mjs
 
 # TypeScript compilation

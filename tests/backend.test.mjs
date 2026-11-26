@@ -6,7 +6,10 @@ import { test, describe, before, after } from "node:test";
 import { strict as assert } from "node:assert";
 import { readFileSync } from "node:fs";
 
-const API = "http://localhost:3001";
+// Use the IPv4 literal: on Windows, `localhost` may resolve to ::1 while the
+// Fastify server binds 0.0.0.0 (IPv4 only), which makes fetch fail with
+// ECONNREFUSED even though the server is running.
+const API = process.env.API_BASE ?? "http://127.0.0.1:3001";
 
 describe("Health", () => {
   test("GET /health returns ok", async () => {
