@@ -113,6 +113,8 @@ Each attack is implemented as a script in the evaluation harness. "Success crite
 | **AT-28** | **Privacy harvesting.** Observer links purchases, revenue, fingerprints. | Public state | Deanonymisation | Commit-reveal ratings; avoid plaintext fingerprints where possible; note GDPR gap | **Yes** — stated |
 | **AT-29** | **Cross-chain / cross-contract replay.** Reuse a signature on another deployment. | No domain separation | Unauthorised action | EIP-712 domain with `chainId` + `verifyingContract`; nonces; deadlines | No |
 | **AT-30** | **Reentrancy on payout.** Malicious recipient re-enters. | External call before state update | Double withdrawal | Checks-effects-interactions; reentrancy guard; pull payments | No |
+| **AT-31** | **Late-respond time-bar.** Seller responds to Mode-2 challenge near or after T_confirm to time-bar Mode-1 dispute. | Mode-2 challenge active | Buyer unable to dispute inconsistent content; seller settles via timeoutConfirm | `respond()` extends `T_confirm` by at least 1 day (`CONFIRM_EXTENSION`); seller `timeoutConfirm` blocked during extension | No |
+| **AT-32** | **Mode-2 re-challenge loop.** Buyer repeatedly calls `disputeMode2()` after valid `respond()` to extend `T_confirm` indefinitely. | Valid `respond()` completed | Seller payment stalled indefinitely | `mode2Challenged` flag in `Sale` caps Mode-2 challenges at 1 per sale (`AlreadyChallenged()`) | No |
 
 ---
 

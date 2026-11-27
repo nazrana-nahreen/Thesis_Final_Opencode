@@ -1,5 +1,7 @@
 # FINAL RESEARCH READINESS REPORT — MetaTrade-R
 
+> **Superseded (2026-11-27).** This report records an earlier snapshot. Test counts (59 Solidity, 73 total) and gas figures (448,119 cycle / 324,580 dispute) are historical; the current build has 72 Foundry + 14 backend + 7 watcher = 93 tests and 456,691 / 241,278 gas (30-run means). See docs/MEASURED_RESULTS.md and docs/THESIS_DRAFT.md.
+
 **Date:** 2026-11-22
 **Reviewer:** Independent evidence-consistency review
 

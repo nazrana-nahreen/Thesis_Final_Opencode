@@ -11,7 +11,7 @@ MetaTrade (IEEE Access 2024) claims trust-free AIGC trading but its settlement c
 1. **Reproducible audit** — 15 security findings with file/function/line evidence
 2. **CRC settlement** — Commit-Recompute-Challenge protocol binding payment to pre-sale content commitments
 3. **Confidentiality-preserving delivery** — per-buyer ECIES key wrapping (honest path)
-4. **On-chain trustless dispute resolution** — Mode 1 (integrity) without arbitrator, Mode 2 (non-delivery) with seller reveal
+4. **On-chain dispute resolution without a trusted arbitrator** — Mode 1 (integrity) without arbitrator, Mode 2 (non-delivery) with seller reveal
 5. **Economic model** — bond sizing linked to fingerprint detection probability
 6. **Measured costs** — gas, latency, storage, attack success rates
 
@@ -20,15 +20,15 @@ MetaTrade (IEEE Access 2024) claims trust-free AIGC trading but its settlement c
 ```
 metatrade-r/
 ├── src/                    # 5 Solidity contracts (Foundry)
-├── test/                   # 6 Solidity test suites (59 tests)
+├── test/                   # 7 Solidity test suites (72 tests)
 ├── script/                 # Deployment script
 ├── crypto/                 # TypeScript crypto (HMAC, Merkle, encryption, ECIES)
-├── api/src/                # Fastify backend (17 endpoints)
-├── tests/                  # Backend integration tests (14 tests)
+├── api/src/                # Fastify backend (16 endpoints + /health)
+├── tests/                  # Backend (14) and watcher (7) integration tests
 ├── audit/                  # Audit reports
-├── harness/                # Python attack harness (17 scenarios)
-├── watcher/                # Event watcher
-├── experiments/            # Gas benchmark + baseline reports
+├── harness/                # Attack matrix runner (18 scenarios, executes Foundry)
+├── watcher/                # Event watcher (checkpoint, timeout scan)
+├── experiments/            # E3-E8 runners and measured results
 ├── validation/             # Validation report
 ├── thesis/diagrams/        # 20 architecture diagrams (PNG+SVG+Mermaid)
 ├── cli.ts                  # CLI (6 commands)
@@ -86,7 +86,7 @@ ipfs init
 # Compile Solidity
 forge build
 
-# Run Solidity tests (59 tests)
+# Run Solidity tests (72 tests)
 forge test
 
 # Run backend tests (14 tests)
@@ -120,8 +120,11 @@ curl http://localhost:3001/health
 ### Run attack scenarios
 
 ```bash
-python harness/attack_harness.py --system B3 --out harness/results
+python harness/attack_harness.py --system all --out harness/results
 ```
+
+This executes the real Foundry tests and writes `B1/B2/B3_results.{json,csv}`.
+A scenario is only listed when a matching test exists; nothing is hard-coded.
 
 ## Test Results
 
@@ -130,24 +133,40 @@ python harness/attack_harness.py --system B3 --out harness/results
 | DisputeVerifier | 7 | PASS |
 | CryptoVectors (RFC 4231, NIST, Merkle) | 10 | PASS |
 | E2E | 2 | PASS |
-| Invariants (fuzz) | 1 | PASS |
-| Adversarial (AT-01..AT-17) | 27 | PASS |
+| Invariants (fuzz) | 1 suite, 3 invariants | PASS |
+| Adversarial (AT-01..AT-17, AT-30) | 28 | PASS |
+| Baselines (B1/B2) | 12 | PASS |
 | GasBenchmark | 12 | PASS |
 | Backend (Node.js) | 14 | PASS |
-| **Total** | **73** | **All pass** |
+| Watcher (Node.js + Anvil) | 7 | PASS |
+| **Total** | **93** | **All pass** |
 
-Attack scenarios: 17/17 executed, 15 blocked, 2 residual (documented).
+Measured numbers and scope: `docs/MEASURED_RESULTS.md`. Gas is a 30-run
+mean/median/SD/p95 on a local chain; the fingerprint study is an 80-image
+classical-hash pilot; storage is at parity with the published baseline.
 
-## Gas Measurements (isolated, cold)
+Attack scenarios: 18 executable (AT-01..AT-17 plus AT-30), 15 blocked,
+1 mitigated by the buyer bond, 2 residual (documented). AT-18..AT-29 are not
+settlement-contract tests and are not counted.
 
-| Operation | Gas |
-|---|---|
-| Honest sale cycle | 448,119 |
-| Mode 1 dispute | 324,580 |
-| Mode 2 dispute | 132,030 |
-| Deliver | 83,044 |
-| Confirm | 163,417 |
-| Buy | 201,658 |
+Run `node scripts/verify_all.mjs` for Foundry + watcher + backend, or add
+`--full` for the attack matrix and E4–E8.
+
+## Gas Measurements (30 repetitions, local Anvil)
+
+| Operation | Mean gas | n |
+|---|---:|---:|
+| Per-sale cycle (buy + deliver + confirm) | 456,691 | 30 |
+| List | 181,647 | 50 |
+| Buy | 182,100 | 50 |
+| Deliver (100-byte key) | 146,373 | 50 |
+| Confirm | 128,218 | 30 |
+| Mode 1 dispute | 241,278 | 10 |
+| Mode 2 dispute | 33,160 | 10 |
+| Respond | 158,443 | 10 |
+
+The old single-run figures (448,119 cycle; 324,580 Mode 1; 83,044 deliver)
+are superseded. The deliver number depends on the wrapped-key length.
 
 ## Key Design Decisions
 
@@ -158,8 +177,9 @@ Attack scenarios: 17/17 executed, 15 blocked, 2 residual (documented).
 
 ## Security
 
-- 15 audit findings (0 critical, 2 high, 4 medium, 5 low, 3 info)
-- All high/medium findings are design-level limitations, documented as residual risks
+- 44 catalogue entries for the base MetaTrade paper/code (F1–F44)
+- 15 findings in the MetaTrade-R self-audit (0 critical, 2 high, 4 medium, 5 low, 3 info)
+- All high/medium self-audit findings are design-level limitations, documented as residual risks
 - No fund-loss bugs, access-control bypasses, or reentrancy vulnerabilities
 - Trust set: TA1-TA12 (enumerated, not empty)
 
@@ -167,7 +187,9 @@ Attack scenarios: 17/17 executed, 15 blocked, 2 residual (documented).
 
 - `audit/` — Audit reports (FINAL_INDEPENDENT_AUDIT.md, AUDIT.md)
 - `thesis/diagrams/` — 20 architecture diagrams (PNG + SVG + Mermaid)
-- `experiments/` — Gas benchmark + baseline reconstruction reports
+- `experiments/` — E3–E8 runners and measured results
+- `docs/THESIS_DRAFT.md` — eight-chapter thesis draft
+- `docs/MEASURED_RESULTS.md` — all measured numbers and scope limits
 - `validation/` — Validation report
 - `EMPTY_DIRECTORY_ARCHITECTURE_AUDIT.md` — Directory audit
 
@@ -180,4 +202,3 @@ MIT (see SPDX headers in source files).
 Based on: Truong, Le & Le, "Trust-Free Blockchain Framework for AI-Generated Content Trading and Management in Metaverse," IEEE Access, vol. 12, 2024. DOI: 10.1109/ACCESS.2024.3376509
 
 Adapted from: FairSwap (Dziembowski, Eckey, Faust, CCS 2018, DOI: 10.1145/3243734.3243857)
-EOF

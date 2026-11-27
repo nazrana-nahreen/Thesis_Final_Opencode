@@ -16,6 +16,9 @@ contract RoyaltySplitter is ReentrancyGuard {
 
     constructor() {}
 
+    /// @dev Holds ETH transferred by the escrow when a royalty is credited.
+    receive() external payable {}
+
     function setEscrow(address escrow_) external {
         require(escrow == address(0), "escrow set");
         escrow = escrow_;

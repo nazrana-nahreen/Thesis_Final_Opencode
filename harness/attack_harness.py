@@ -1,247 +1,209 @@
 #!/usr/bin/env python3
-"""
-MetaTrade-R Attack Harness (P5).
-Executes AT-01..AT-17 against deployed contracts on Anvil.
-Records results to JSON and CSV with reproducible seeds.
+"""Executable attack matrix for MetaTrade-R (AT-01..AT-17, AT-30).
+
+This replaces the previous harness, which returned hard-coded booleans, zero
+gas and empty transaction hashes without executing anything. This runner
+executes the real Foundry tests and reports their outcomes. It does not invent
+results: an attack is only listed if a matching test exists, and a failed test
+is reported as ``test_failed``.
 
 Usage:
-    python attack_harness.py --rpc http://127.0.0.1:8545 --out results/
+    python harness/attack_harness.py --system B3 --out harness/results
+    python harness/attack_harness.py --system all
 """
 
+from __future__ import annotations
+
 import argparse
-import json
 import csv
-import time
+import json
 import os
-import hashlib
+import re
+import shutil
+import subprocess
+import sys
 from dataclasses import dataclass, asdict
-from typing import Optional
 
-try:
-    from web3 import Web3
-    HAS_WEB3 = True
-except ImportError:
-    HAS_WEB3 = False
-    print("WARNING: web3 not installed. Install with: pip install web3")
+ATTACKS = {
+    "AT-01": "Consistent garbage listing",
+    "AT-02": "Inconsistent commitment",
+    "AT-03": "Wrong key delivery",
+    "AT-04": "Key before payment",
+    "AT-05": "Re-initialisation",
+    "AT-06": "Price change after deposit",
+    "AT-07": "De-listed asset trading",
+    "AT-08": "Overpayment stranding",
+    "AT-09": "Refund wiping",
+    "AT-10": ".transfer griefing",
+    "AT-11": "False integrity dispute",
+    "AT-12": "Fabricated chunk proof",
+    "AT-13": "Dispute spam",
+    "AT-14": "Leak-by-dispute",
+    "AT-15": "Seller stalls after dispute",
+    "AT-16": "Buyer stalls confirmation",
+    "AT-17": "Timestamp manipulation",
+    "AT-30": "Reentrancy on payout",
+    "AT-31": "Late-respond time-bar",
+    "AT-32": "Mode-2 re-challenge loop",
+}
 
-# Anvil default accounts
-ACCOUNTS = [
-    "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80",  # 0
-    "0x59c6995e998f97a5a0044966f0945389dc9e86dae88c7a8412f4603b6b78690d",  # 1
-    "0x5de4111afa1a4b94908f83103eb1f1706367c2e68ca870fc3fb9a804cdab365a",  # 2
-]
+# Outcome of the attack *if the test passes*. For B1/B2 a passing test asserts
+# that the attack works; for B3 it asserts that the defence holds.
+OUTCOMES = {
+    "B3": {
+        "AT-01": ("succeeds", "residual: consistent garbage passes integrity; bond/fingerprint are off-chain"),
+        "AT-02": ("blocked", "inconsistent plaintext/ciphertext proof refunds the buyer"),
+        "AT-03": ("blocked", "mode-2 response rejects a key that does not match cK"),
+        "AT-04": ("blocked", "no key material before payment; wrapped key posted at delivery"),
+        "AT-05": ("blocked", "no initializer; constructor wires the contracts"),
+        "AT-06": ("blocked", "price is snapshotted at buy; registry change has no effect"),
+        "AT-07": ("blocked", "buy reverts on an inactive asset"),
+        "AT-08": ("blocked", "exact msg.value required; no stranded excess"),
+        "AT-09": ("blocked", "state guards reject confirm/deliver after a refund"),
+        "AT-10": ("blocked", "call{value:} pays gas-heavy receivers"),
+        "AT-11": ("blocked", "a false claim forfeits the buyer bond"),
+        "AT-12": ("blocked", "a leaf not rooted in R_D/R_C reverts"),
+        "AT-13": ("mitigated", "buyer bond is forfeited, not prevention; seller is not paid extra"),
+        "AT-14": ("succeeds", "residual: K is public after a mode-2 dispute"),
+        "AT-15": ("blocked", "timeoutRespond refunds after T_respond"),
+        "AT-16": ("blocked", "timeoutConfirm pays the seller after T_confirm"),
+        "AT-17": ("blocked", "window constants; boundary behaves at T+/-15s"),
+        "AT-30": ("blocked", "reentrant confirm is rejected by nonReentrant"),
+        "AT-31": ("blocked", "respond extends T_confirm by 1 day; timeoutConfirm blocked and buyer disputes Mode 1"),
+        "AT-32": ("blocked", "max one Mode-2 challenge per sale; second disputeMode2 reverts with AlreadyChallenged"),
+    },
+    "B1": {
+        "AT-01": ("succeeds", "no content verification; delivery hash is arbitrary"),
+        "AT-03": ("succeeds", "no buyer-initiated refund; funds stay locked"),
+        "AT-06": ("blocked", "price is snapshotted at buy"),
+        "AT-08": ("succeeds", "overpayment is accepted and stranded"),
+    },
+    "B2": {
+        "AT-01": ("succeeds", "commits to garbage consistently; no preview binding"),
+        "AT-02": ("blocked", "one-block inconsistency proof refunds"),
+        "AT-03": ("blocked", "wrong key exposes a mismatch; buyer refunded"),
+        "AT-11": ("blocked", "consistent content reverts the claim"),
+        "AT-12": ("blocked", "fabricated block fails the Merkle check"),
+        "AT-14": ("succeeds", "K is revealed publicly on every sale"),
+        "AT-15": ("blocked", "timeoutReveal refunds"),
+        "AT-16": ("blocked", "timeoutConfirm pays the seller"),
+    },
+}
+
+SPECIAL = {"B3": {"AT-30": "testReentrancy"}}
+SUITES = {"B1": "test/Baselines.t.sol", "B2": "test/Baselines.t.sol", "B3": "test/Adversarial.t.sol"}
+
 
 @dataclass
-class AttackResult:
+class Row:
     attack_id: str
     name: str
     system: str
-    success: bool
-    executed: bool
-    reason: str
-    attacker_gas: int
-    defender_gas: int
-    tx_hashes: list
-    state_changes: dict
-    wall_time_ms: float
-    seed: int
+    test: str
+    status: str
+    outcome: str
+    note: str
 
 
-class AttackHarness:
-    def __init__(self, rpc: str, system: str, seed: int = 42):
-        self.rpc = rpc
-        self.system = system
-        self.seed = seed
-        if HAS_WEB3:
-            self.w3 = Web3(Web3.HTTPProvider(rpc))
-            self.accounts = [self.w3.eth.account.from_key(k) for k in ACCOUNTS]
-        else:
-            self.w3 = None
-            self.accounts = []
-
-    def run_attack(self, attack_id: str, name: str, fn) -> AttackResult:
-        t0 = time.time()
-        try:
-            result = fn(self)
-            return AttackResult(
-                attack_id=attack_id,
-                name=name,
-                system=self.system,
-                success=result.get("success", False),
-                executed=True,
-                reason=result.get("reason", ""),
-                attacker_gas=result.get("attacker_gas", 0),
-                defender_gas=result.get("defender_gas", 0),
-                tx_hashes=result.get("tx_hashes", []),
-                state_changes=result.get("state_changes", {}),
-                wall_time_ms=(time.time() - t0) * 1000,
-                seed=self.seed,
-            )
-        except Exception as e:
-            return AttackResult(
-                attack_id=attack_id,
-                name=name,
-                system=self.system,
-                success=False,
-                executed=False,
-                reason=f"Execution failed: {str(e)}",
-                attacker_gas=0,
-                defender_gas=0,
-                tx_hashes=[],
-                state_changes={},
-                wall_time_ms=(time.time() - t0) * 1000,
-                seed=self.seed,
-            )
-
-    # ---- AT-01: Consistent garbage listing ----
-    def at01(self):
-        """Seller commits to garbage D_g consistently. Integrity passes; semantic fails."""
-        # On B3: integrity passes (by construction), semantic check fails.
-        # The attack "succeeds" if the buyer pays for garbage that passes integrity.
-        # On B3, the buyer's semantic check (preview pHash) should catch it,
-        # but if the buyer skips the check, integrity alone passes.
-        return {"success": True, "reason": "Integrity passes for consistent garbage (semantic gap documented)", "attacker_gas": 0}
-
-    # ---- AT-02: Inconsistent commitment ----
-    def at02(self):
-        """Seller commits hD for real asset but C for garbage. Buyer disputes, contract finds inconsistency."""
-        return {"success": False, "reason": "CRC chunk-consistency proof catches it; buyer wins dispute", "attacker_gas": 0}
-
-    # ---- AT-03: Wrong key delivery ----
-    def at03(self):
-        """Seller delivers wrong key. Mode 2 forces valid reveal or refund."""
-        return {"success": False, "reason": "Mode 2: seller must reveal valid K within T_respond or buyer refunded", "attacker_gas": 0}
-
-    # ---- AT-04: Key before payment ----
-    def at04(self):
-        """Buyer obtains key before payment. On B3, key is never released pre-settlement."""
-        return {"success": False, "reason": "Key wrapped to buyer only after buy(); no pre-settlement release", "attacker_gas": 0}
-
-    # ---- AT-05: Re-initialisation ----
-    def at05(self):
-        """Attacker re-initialises a clone. On B3, no initialize function exists."""
-        return {"success": False, "reason": "No initialize function; commitments are constructor-set", "attacker_gas": 0}
-
-    # ---- AT-06: Price change after deposit ----
-    def at06(self):
-        """Seller raises price after deposit. On B3, price is snapshotted at buy."""
-        return {"success": False, "reason": "Price snapshotted at buy(); updatePrice only when no active sale", "attacker_gas": 0}
-
-    # ---- AT-07: De-listed asset trading ----
-    def at07(self):
-        """Sale on inactive asset. On B3, buy/deliver read isActive."""
-        return {"success": False, "reason": "Escrow checks isActive on buy and deliver", "attacker_gas": 0}
-
-    # ---- AT-08: Overpayment stranding ----
-    def at08(self):
-        """Excess payment not recoverable. On B3, exact payment required."""
-        return {"success": False, "reason": "Exact payment check: msg.value == price + bond", "attacker_gas": 0}
-
-    # ---- AT-09: Refund wiping ----
-    def at09(self):
-        """Prior refund lost. On B3, per-sale escrow, no shared mutable balance."""
-        return {"success": False, "reason": "Per-sale escrow records; pull payments", "attacker_gas": 0}
-
-    # ---- AT-10: .transfer griefing ----
-    def at10(self):
-        """Payment to contract wallet fails. On B3, uses call{value:}."""
-        return {"success": False, "reason": "call{value:} with reentrancy guard", "attacker_gas": 0}
-
-    # ---- AT-11: False integrity dispute ----
-    def at11(self):
-        """Buyer claims bad chunk on correct content. Contract recomputes and finds consistent."""
-        return {"success": False, "reason": "Deterministic recomputation catches false claim; buyer loses bond", "attacker_gas": 0}
-
-    # ---- AT-12: Fabricated chunk proof ----
-    def at12(self):
-        """Contract accepts proof not rooted in R_D/R_C. Merkle verification rejects."""
-        return {"success": False, "reason": "Merkle proof must verify against committed root", "attacker_gas": 0}
-
-    # ---- AT-13: Dispute spam ----
-    def at13(self):
-        """Seller incurs unbounded cost per spam dispute. Mode 1 requires no seller response."""
-        return {"success": False, "reason": "Mode 1 is seller-independent; buyer pays gas + bond", "attacker_gas": 0}
-
-    # ---- AT-14: Leak-by-dispute ----
-    def at14(self):
-        """Content becomes public without buyer paying bond. Buyer already holds content."""
-        return {"success": True, "reason": "Accepted residual risk: buyer already holds K; dispute publishes it", "attacker_gas": 0}
-
-    # ---- AT-15: Seller stalls after dispute ----
-    def at15(self):
-        """Buyer stuck past T_max. Timeout refunds buyer + slashes seller."""
-        return {"success": False, "reason": "timeoutRespond refunds buyer and slashes seller", "attacker_gas": 0}
-
-    # ---- AT-16: Buyer stalls confirmation ----
-    def at16(self):
-        """Seller unpaid past T_max. Timeout pays seller."""
-        return {"success": False, "reason": "timeoutConfirm pays seller after T_confirm", "attacker_gas": 0}
-
-    # ---- AT-17: Timestamp manipulation ----
-    def at17(self):
-        """Window expires early. Bounded windows (1-2 days); miner can't shift by days."""
-        return {"success": False, "reason": "Windows are days-long; bounded tolerance", "attacker_gas": 0}
+def find_forge(explicit: str | None) -> str:
+    if explicit:
+        return explicit
+    found = shutil.which("forge")
+    if found:
+        return found
+    fallback = os.path.expanduser(r"~\.foundry\bin\forge.exe")
+    if os.path.exists(fallback):
+        return fallback
+    sys.exit("forge not found; pass --forge or add Foundry to PATH")
 
 
-ATTACK_MAP = {
-    "AT-01": ("Consistent garbage listing", AttackHarness.at01),
-    "AT-02": ("Inconsistent commitment", AttackHarness.at02),
-    "AT-03": ("Wrong key delivery", AttackHarness.at03),
-    "AT-04": ("Key before payment", AttackHarness.at04),
-    "AT-05": ("Re-initialisation", AttackHarness.at05),
-    "AT-06": ("Price change after deposit", AttackHarness.at06),
-    "AT-07": ("De-listed asset trading", AttackHarness.at07),
-    "AT-08": ("Overpayment stranding", AttackHarness.at08),
-    "AT-09": ("Refund wiping", AttackHarness.at09),
-    "AT-10": (".transfer griefing", AttackHarness.at10),
-    "AT-11": ("False integrity dispute", AttackHarness.at11),
-    "AT-12": ("Fabricated chunk proof", AttackHarness.at12),
-    "AT-13": ("Dispute spam", AttackHarness.at13),
-    "AT-14": ("Leak-by-dispute", AttackHarness.at14),
-    "AT-15": ("Seller stalls after dispute", AttackHarness.at15),
-    "AT-16": ("Buyer stalls confirmation", AttackHarness.at16),
-    "AT-17": ("Timestamp manipulation", AttackHarness.at17),
-}
+def run_forge(forge: str, path: str) -> dict:
+    proc = subprocess.run(
+        [forge, "test", "--match-path", path, "--json"],
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+        errors="replace",
+    )
+    if proc.returncode != 0 and not proc.stdout.strip():
+        sys.exit(f"forge test failed for {path}:\n{proc.stderr[-2000:]}")
+    return json.loads(proc.stdout)
 
 
-def main():
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--system", choices=["B0", "B1", "B2", "B3"], default="B3")
-    parser.add_argument("--rpc", default="http://127.0.0.1:8545")
-    parser.add_argument("--out", default="results")
-    parser.add_argument("--seed", type=int, default=42)
-    args = parser.parse_args()
+def collect(forge: str) -> dict[str, dict[str, dict]]:
+    by_system: dict[str, dict[str, dict]] = {"B1": {}, "B2": {}, "B3": {}}
+    baselines = run_forge(forge, SUITES["B1"])
+    for suite in baselines.values():
+        for test, result in suite.get("test_results", {}).items():
+            m = re.match(r"test(B1|B2)_(AT\d\d)_", test)
+            if m:
+                by_system[m.group(1)][m.group(2).replace("AT", "AT-")] = {
+                    "test": test,
+                    "status": result.get("status"),
+                }
+    adversarial = run_forge(forge, SUITES["B3"])
+    for suite in adversarial.values():
+        for test, result in suite.get("test_results", {}).items():
+            m = re.match(r"test(AT\d\d)_", test)
+            if m:
+                by_system["B3"][m.group(1).replace("AT", "AT-")] = {
+                    "test": test,
+                    "status": result.get("status"),
+                }
+            for attack, special_test in SPECIAL["B3"].items():
+                if test.startswith(special_test + "("):
+                    by_system["B3"][attack] = {"test": test, "status": result.get("status")}
+    return by_system
 
+
+def build_rows(by_system: dict[str, dict[str, dict]]) -> list[Row]:
+    rows: list[Row] = []
+    for system, tests in by_system.items():
+        for attack, name in ATTACKS.items():
+            found = tests.get(attack)
+            if not found:
+                rows.append(Row(attack, name, system, "", "not_executed", "not_tested", "no matching Foundry test"))
+                continue
+            passed = found["status"] == "Success"
+            if not passed:
+                rows.append(Row(attack, name, system, found["test"], "failed", "test_failed", "test did not pass; see forge"))
+                continue
+            outcome, note = OUTCOMES[system].get(attack, ("unknown", ""))
+            rows.append(Row(attack, name, system, found["test"], "passed", outcome, note))
+    return rows
+
+
+def main() -> None:
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--system", choices=["B1", "B2", "B3", "all"], default="all")
+    ap.add_argument("--out", default="harness/results")
+    ap.add_argument("--forge", default=None)
+    args = ap.parse_args()
+
+    forge = find_forge(args.forge)
     os.makedirs(args.out, exist_ok=True)
-    harness = AttackHarness(args.rpc, args.system, args.seed)
+    by_system = collect(forge)
+    rows = build_rows(by_system)
+    if args.system != "all":
+        rows = [r for r in rows if r.system == args.system]
 
-    results = []
-    for aid, (name, fn) in ATTACK_MAP.items():
-        print(f"Running {aid}: {name} ...", flush=True)
-        r = harness.run_attack(aid, name, fn)
-        results.append(asdict(r))
-        print(f"  -> executed={r.executed} success={r.success} reason={r.reason}")
+    for system in sorted({r.system for r in rows}):
+        subset = [r for r in rows if r.system == system]
+        with open(os.path.join(args.out, f"{system}_results.json"), "w", encoding="utf-8") as f:
+            json.dump([asdict(r) for r in subset], f, indent=2)
+        with open(os.path.join(args.out, f"{system}_results.csv"), "w", newline="", encoding="utf-8") as f:
+            w = csv.DictWriter(f, fieldnames=list(asdict(subset[0]).keys()))
+            w.writeheader()
+            w.writerows([asdict(r) for r in subset])
+        counts = {}
+        for r in subset:
+            counts[r.outcome] = counts.get(r.outcome, 0) + 1
+        print(f"{system}: " + ", ".join(f"{k}={v}" for k, v in sorted(counts.items())))
+        for r in subset:
+            print(f"  {r.attack_id}  {r.outcome:<16} {r.test or '(not tested)'}")
 
-    # Write JSON
-    json_path = os.path.join(args.out, f"{args.system}_results.json")
-    with open(json_path, "w") as f:
-        json.dump({"system": args.system, "seed": args.seed, "rpc": args.rpc, "results": results}, f, indent=2)
-
-    # Write CSV
-    csv_path = os.path.join(args.out, f"{args.system}_results.csv")
-    with open(csv_path, "w", newline="") as f:
-        writer = csv.DictWriter(f, fieldnames=list(results[0].keys()))
-        writer.writeheader()
-        writer.writerows(results)
-
-    # Summary
-    executed = sum(1 for r in results if r["executed"])
-    succeeded = sum(1 for r in results if r["success"])
-    print(f"\n=== SUMMARY: {args.system} ===")
-    print(f"Executed: {executed}/17")
-    print(f"Succeeded (attack worked): {succeeded}/17")
-    print(f"Blocked: {executed - succeeded}/17")
-    print(f"Results: {json_path}, {csv_path}")
+    print(f"\nwrote {args.out}/<system>_results.json and .csv")
+    print("Only rows with a matching Foundry test have an outcome; the rest are not_executed.")
 
 
 if __name__ == "__main__":

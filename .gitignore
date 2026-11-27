@@ -17,3 +17,9 @@ __pycache__/
 # OS
 .DS_Store
 Thumbs.db
+
+# Experiment artefacts that are reproducible or large
+experiments/results/e8/images/
+experiments/results/e8_dryrun/
+experiments/results/_*.json
+experiments/results/_*.txt

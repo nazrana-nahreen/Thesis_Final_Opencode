@@ -62,7 +62,7 @@ Game-theoretic incentive mechanisms [24] model attack costs. MetaTrade-R's econo
 
 ## 2.9 Comparative Analysis
 
-Table 2.1 compares the reviewed systems. No existing system simultaneously provides content-binding settlement, confidentiality on the honest path, on-chain trustless dispute resolution, and AIGC-specific licensing.
+Table 2.1 compares the reviewed systems. No existing system simultaneously provides content-binding settlement, confidentiality on the honest path, on-chain dispute resolution without a trusted arbitrator, and AIGC-specific licensing.
 
 | System | Year | Content binding | Confidentiality | Dispute | AIGC-specific |
 |---|---|---|---|---|---|
@@ -82,14 +82,14 @@ G2: No existing system provides confidentiality on the honest path AND content-b
 G3: No existing system separates integrity from semantic correctness.
 G4: No existing system links bond sizing to fingerprint robustness.
 G5: No existing AIGC marketplace has been empirically audited at the code level.
-G6: No existing system provides on-chain, trustless dispute resolution without ZK or oracles (for integrity).
+G6: No existing system provides on-chain dispute resolution without a trusted arbitrator, ZK, or an oracle (for integrity).
 G7: No existing system provides AIGC-specific licence semantics on-chain.
 
 MetaTrade-R responds to G1-G5. G6 partially addressed. G7 out of scope (Tier 3).
 
 ## 2.11 Chapter Summary
 
-This chapter reviewed 28 papers and standards across eight research areas. No existing system combines content-binding settlement with confidentiality on the honest path, on-chain trustless dispute resolution, and AIGC-specific licensing. MetaTrade-R's contributions are positioned as adaptations and empirical findings, not as novel cryptographic primitives.
+This chapter reviewed 28 papers and standards across eight research areas. No existing system combines content-binding settlement with confidentiality on the honest path, on-chain dispute resolution without a trusted arbitrator, and AIGC-specific licensing. MetaTrade-R's contributions are positioned as adaptations and empirical findings, not as novel cryptographic primitives.
 
 ---
 

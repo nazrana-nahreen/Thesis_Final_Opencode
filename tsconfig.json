@@ -18,6 +18,7 @@
   "include": [
     "crypto/**/*.ts",
     "api/**/*.ts",
+    "watcher/**/*.ts",
     "cli.ts"
   ],
   "exclude": [

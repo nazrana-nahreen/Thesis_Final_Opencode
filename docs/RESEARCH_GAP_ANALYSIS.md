@@ -19,7 +19,7 @@ Each gap is stated as: "No existing system does X" with evidence from the review
 
 ### G3: Integrity vs. semantic correctness conflation
 **Evidence:** MetaTrade [1] uses one hash check for both guarantees. No system distinguishes integrity (cryptographic) from semantic correctness (perceptual/economic).
-**MetaTrade-R response:** Separate dispute procedures with distinct trust assumptions. Integrity: trustless, on-chain. Semantic: economic, oracle/committee.
+**MetaTrade-R response:** Separate dispute procedures with distinct trust assumptions. Integrity: on-chain, no trusted arbitrator. Semantic: economic, oracle/committee.
 **Residual:** Semantic correctness is probabilistic (depends on P_d).
 
 ### G4: Bond sizing not linked to detection probability
@@ -32,8 +32,8 @@ Each gap is stated as: "No existing system does X" with evidence from the review
 **MetaTrade-R response:** Reproducible audit with attack harness. 12 findings on Ethereum, 9 on Fabric.
 **Residual:** The published repos may not be the exact artifact used for the paper's measurements.
 
-### G6: No trustless dispute resolution without ZK or oracle (for integrity)
-**Evidence:** FairSwap [14] uses on-chain recomputation (trustless but public key). FDE/VECK [16] uses ZK (expensive). UMA [23] uses oracle (subjective). No system provides trustless integrity dispute at low cost.
+### G6: No dispute resolution without a trusted arbitrator, ZK, or an oracle (for integrity)
+**Evidence:** FairSwap [14] uses on-chain recomputation (no arbitrator, but public key). FDE/VECK [16] uses ZK (expensive). UMA [23] uses oracle (subjective). No system provides an integrity dispute decided without a trusted arbitrator, ZK, or an oracle at low cost.
 **MetaTrade-R response:** CRC Mode 1: buyer proves inconsistency on-chain via HMAC recomputation. ~325k gas per dispute.
 **Residual:** Requires revealing K (confidentiality loss). HMAC-CTR is not AEAD.
 

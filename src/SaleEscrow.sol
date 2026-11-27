@@ -36,6 +36,7 @@ contract SaleEscrow is ReentrancyGuard {
         bytes32 revealedN;
         bytes32 revealedS;
         bool keyRevealed;
+        bool mode2Challenged;
     }
 
     struct DisputeProof {
@@ -60,6 +61,7 @@ contract SaleEscrow is ReentrancyGuard {
     uint64 public constant DELIVER_WINDOW = 1 days;
     uint64 public constant CONFIRM_WINDOW = 2 days;
     uint64 public constant RESPOND_WINDOW = 1 days;
+    uint64 public constant CONFIRM_EXTENSION = 1 days;
     uint64 public constant BUYER_BOND = 0.001 ether;
 
     event SaleCreated(uint256 indexed saleId, uint256 indexed assetId, address indexed buyer, uint64 price, uint64 bondSeller);
@@ -80,6 +82,7 @@ contract SaleEscrow is ReentrancyGuard {
     error InsufficientSellerCredit();
     error InvalidKey();
     error BadPayment();
+    error AlreadyChallenged();
 
     constructor(address registry_, address royalty_, address licenceToken_) {
         registry = AssetRegistry(registry_);
@@ -148,10 +151,16 @@ contract SaleEscrow is ReentrancyGuard {
     function disputeMode1(uint256 saleId, DisputeProof calldata proof) external nonReentrant {
         Sale storage sl = _sales[saleId];
         if (msg.sender != sl.buyer) revert NotBuyer();
-        if (sl.state != State.DELIVERED && !(sl.state == State.CHALLENGED && sl.keyRevealed)) {
+        if (sl.state != State.DELIVERED) {
             revert BadState(State.DELIVERED, sl.state);
         }
         if (block.timestamp > sl.tConfirm) revert Late();
+
+        if (sl.keyRevealed) {
+            if (proof.K != sl.revealedK || proof.N != sl.revealedN || proof.s != sl.revealedS) {
+                revert InvalidKey();
+            }
+        }
 
         AssetRegistry.Asset memory a = registry.get(sl.assetId);
 
@@ -173,20 +182,32 @@ contract SaleEscrow is ReentrancyGuard {
                 parentAmount2 = (uint256(sl.price) * a2.royaltyBps) / 10000;
                 sellerAmount2 = sl.price - parentAmount2;
             }
-            _pay(sl.seller, sellerAmount2);
+            address seller2 = sl.seller;
+            address buyer2 = sl.buyer;
+            uint256 assetId2 = sl.assetId;
+            uint64 bondSeller2 = sl.bondSeller;
+            uint64 bondBuyer2 = sl.bondBuyer;
+            address parentSeller2 = a2.parentAssetId != 0 ? registry.sellerOf(a2.parentAssetId) : address(0);
+
+            // --- EFFECTS ---
+            sl.state = State.SETTLED;
+            sellerCredit[seller2] += bondSeller2 + bondBuyer2;
+            emit Settled(saleId, uint64(sellerAmount2), uint64(parentAmount2));
+
+            // --- INTERACTIONS ---
+            _pay(seller2, sellerAmount2);
             if (parentAmount2 > 0) {
-                address parentSeller2 = registry.sellerOf(a2.parentAssetId);
+                _pay(address(royalty), parentAmount2);
                 royalty.credit(parentSeller2, parentAmount2);
             }
-            sellerCredit[sl.seller] += sl.bondSeller + sl.bondBuyer;
-            sl.state = State.SETTLED;
-            licenceToken.mint(sl.buyer, sl.assetId);
-            emit Settled(saleId, uint64(sellerAmount2), uint64(parentAmount2));
+            licenceToken.mint(buyer2, assetId2);
         } else {
             // seller cheated -> buyer wins
+            address buyer = sl.buyer;
+            uint64 bondSeller = sl.bondSeller;
             _refund(saleId, sl, "inconsistent");
             // slash seller bond to buyer
-            _pay(sl.buyer, sl.bondSeller);
+            _pay(buyer, bondSeller);
         }
     }
 
@@ -195,7 +216,9 @@ contract SaleEscrow is ReentrancyGuard {
         if (msg.sender != sl.buyer) revert NotBuyer();
         if (sl.state != State.DELIVERED) revert BadState(State.DELIVERED, sl.state);
         if (block.timestamp > sl.tConfirm) revert Late();
+        if (sl.mode2Challenged) revert AlreadyChallenged();
 
+        sl.mode2Challenged = true;
         sl.state = State.CHALLENGED;
         sl.tRespond = uint64(block.timestamp) + RESPOND_WINDOW;
         emit Disputed(saleId, 2);
@@ -215,6 +238,12 @@ contract SaleEscrow is ReentrancyGuard {
         sl.revealedS = s;
         sl.keyRevealed = true;
         sl.state = State.DELIVERED;
+
+        uint64 extended = uint64(block.timestamp) + CONFIRM_EXTENSION;
+        if (extended > sl.tConfirm) {
+            sl.tConfirm = extended;
+        }
+
         emit Responded(saleId);
     }
 
@@ -223,8 +252,10 @@ contract SaleEscrow is ReentrancyGuard {
         if (sl.state != State.ESCROWED) revert BadState(State.ESCROWED, sl.state);
         if (block.timestamp <= sl.tDeliver) revert Early();
 
+        address buyer = sl.buyer;
+        uint64 bondSeller = sl.bondSeller;
         _refund(saleId, sl, "no delivery");
-        _pay(sl.buyer, sl.bondSeller);
+        _pay(buyer, bondSeller);
         emit TimedOut(saleId, 0);
     }
 
@@ -243,8 +274,10 @@ contract SaleEscrow is ReentrancyGuard {
         if (sl.state != State.CHALLENGED) revert BadState(State.CHALLENGED, sl.state);
         if (block.timestamp <= sl.tRespond) revert Early();
 
+        address buyer = sl.buyer;
+        uint64 bondSeller = sl.bondSeller;
         _refund(saleId, sl, "no respond");
-        _pay(sl.buyer, sl.bondSeller);
+        _pay(buyer, bondSeller);
         emit TimedOut(saleId, 2);
     }
 
@@ -260,28 +293,36 @@ contract SaleEscrow is ReentrancyGuard {
             sellerAmount = sl.price - parentAmount;
         }
 
-        // pay seller
-        _pay(sl.seller, sellerAmount);
-        // credit parent royalty (pull payment)
+        address seller = sl.seller;
+        address buyer = sl.buyer;
+        uint256 assetId = sl.assetId;
+        uint64 bondBuyer = sl.bondBuyer;
+        uint64 bondSeller = sl.bondSeller;
+        address parentSeller = a.parentAssetId != 0 ? registry.sellerOf(a.parentAssetId) : address(0);
+
+        // --- EFFECTS ---
+        sl.state = State.SETTLED;
+        sellerCredit[seller] += bondSeller;
+        emit Settled(saleId, uint64(sellerAmount), uint64(parentAmount));
+
+        // --- INTERACTIONS ---
+        _pay(seller, sellerAmount);
         if (parentAmount > 0) {
-            address parentSeller = registry.sellerOf(a.parentAssetId);
+            _pay(address(royalty), parentAmount);
             royalty.credit(parentSeller, parentAmount);
         }
-        // return buyer bond
-        _pay(sl.buyer, sl.bondBuyer);
-        // return seller bond
-        sellerCredit[sl.seller] += sl.bondSeller;
-
-        sl.state = State.SETTLED;
-        licenceToken.mint(sl.buyer, sl.assetId);
-
-        emit Settled(saleId, uint64(sellerAmount), uint64(parentAmount));
+        _pay(buyer, bondBuyer);
+        licenceToken.mint(buyer, assetId);
     }
 
     function _refund(uint256 saleId, Sale storage sl, string memory reason) internal {
-        _pay(sl.buyer, sl.price + sl.bondBuyer);
+        uint256 refundAmount = sl.price + sl.bondBuyer;
+        address buyer = sl.buyer;
+        // --- EFFECTS ---
         sl.state = State.REFUNDED;
-        emit Refunded(saleId, sl.price + sl.bondBuyer, reason);
+        emit Refunded(saleId, uint64(refundAmount), reason);
+        // --- INTERACTIONS ---
+        _pay(buyer, refundAmount);
     }
 
     function _pay(address to, uint256 amount) internal {

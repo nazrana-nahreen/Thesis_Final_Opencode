@@ -59,7 +59,7 @@ This is the only decision a reviewer is likely to challenge, so it is justified 
 
 **Option A — AES-256-GCM + ZK proof of correct decryption.** Standard cipher; but a ZK circuit for AES over a full block is large (tens of thousands of constraints per block), and proving/verifying on-chain is expensive. Too heavy for a BSc and for laptop-feasible experiments.
 
-**Option B — AES-256-GCM + trusted oracle.** Standard cipher; the oracle decrypts and attests. But this reintroduces a trusted party for the *integrity* property, which is the property the thesis is trying to make trustless. It also makes the dispute subjective.
+**Option B — AES-256-GCM + trusted oracle.** Standard cipher; the oracle decrypts and attests. But this reintroduces a trusted party for the *integrity* property, which is the property the thesis is trying to decide without a trusted arbitrator. It also makes the dispute subjective.
 
 **Option C — HMAC-SHA256-CTR + hash commitments.** The EVM recomputes the keystream for one block with two SHA-256 precompile calls per 32 bytes. The contract checks the relation directly. No ZK, no oracle. The cipher is a standard PRF in counter mode, but it is **not** a standardised AEAD.
 

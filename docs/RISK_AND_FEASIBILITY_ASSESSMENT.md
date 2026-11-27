@@ -72,7 +72,7 @@ A "kill criterion" is a pre-committed decision point, so the project does not dr
 ### 4.1 If the on-chain HMAC is too expensive
 
 - Increase `β` from 1 KB to 4 KB (fewer, larger blocks; fewer HMAC calls per dispute? No — more HMAC calls per block). Actually the trade-off is: larger `β` means more HMAC calls per dispute but a smaller leaf list. The gas is dominated by `β/32` HMACs. So **smaller `β` is cheaper for disputes**, but the leaf list grows. The optimum is around `β = 256`–`512`. The plan measures this (ablation A-7) rather than guessing.
-- If still too expensive, fall back to Mode 2 (seller reveals; an off-chain verifier checks) and report the trust delta. The thesis then becomes "the cost of trustless disputes," which is still a contribution.
+- If still too expensive, fall back to Mode 2 (seller reveals; an off-chain verifier checks) and report the trust delta. The thesis then becomes "the cost of disputes without a trusted arbitrator," which is still a contribution.
 
 ### 4.2 If the plagiarism benchmark is too heavy
 
@@ -137,7 +137,7 @@ It does not claim a new primitive. It does not claim trust-free operation. It do
 |---|---|
 | "Isn't this just FairSwap?" | The exchange core is adapted from FairSwap, and the thesis says so. The deltas are per-buyer confidentiality, the two-mode dispute, the AIGC licence layer, the economic model, and the audit. |
 | "Isn't the AIGC marketplace space crowded?" | Yes — DECADE, Story Protocol, AuraMint. The thesis does not claim the marketplace; it claims the *content-binding dispute* and the *audit*. |
-| "Your cipher isn't standard." | Correct. It is chosen because the EVM can recompute it, which is what makes trustless disputes possible. Mode B (AES-GCM + oracle) is specified and measured as the alternative. |
+| "Your cipher isn't standard." | Correct. It is chosen because the EVM can recompute it, which is what makes disputes decidable without a trusted arbitrator. Mode B (AES-GCM + oracle) is specified and measured as the alternative. |
 | "You don't prove security." | Correct. The thesis gives proof sketches for the integrity properties and states that they are sketches. It does not claim a computational proof. |
 | "Your semantic layer is weak." | Correct, and measured. `P_d` is reported, and the bond is sized from it. The thesis does not claim semantic correctness is solved. |
 | "Why not Fabric?" | The published Fabric results are not reproducible from the artifact; rebuilding them would not strengthen the core claim. The audit documents the gap. |

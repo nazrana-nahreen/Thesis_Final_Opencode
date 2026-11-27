@@ -26,6 +26,10 @@ contract GasBenchmark is Test {
 
     uint256 assetId;
     uint256 saleId;
+    uint256 badAssetId;
+    uint256 badSaleId;
+    bytes badC;
+    bytes32 badLeafD;
 
     function setUp() public {
         reg = new AssetRegistry();
@@ -51,9 +55,9 @@ contract GasBenchmark is Test {
         );
         vm.stopPrank();
 
-        // Child asset
+        // Child asset (honest/consistent) and extra bond credit for isolated tests
         vm.startPrank(seller);
-        escrow.depositBond{value: 2 ether}();
+        escrow.depositBond{value: 10 ether}();
         bytes memory D = "hello world plaintext block!!";
         bytes32 kEnc = DisputeVerifier.hmacSha256(K, abi.encodePacked(bytes1(0x01)));
         bytes memory C = new bytes(D.length);
@@ -70,28 +74,57 @@ contract GasBenchmark is Test {
             bytes32(uint256(12)), bytes32(uint256(13)),
             1, 1024, 1 ether, 300, parentId
         );
+
+        // Inconsistent asset for Mode-1 dispute benchmark
+        badC = C;
+        badLeafD = keccak256("tampered-or-inconsistent-plaintext-leaf");
+        badAssetId = reg.list(
+            badLeafD, leafC, badLeafD, leafC, cK,
+            bytes32(uint256(20)), bytes32(uint256(21)),
+            bytes32(uint256(22)), bytes32(uint256(23)),
+            1, 1024, 1 ether, 300, parentId
+        );
         vm.stopPrank();
 
+        // Pre-settled sale to give parentSeller withdrawable royalty credit for testGasRoyaltyWithdraw
+        vm.prank(buyer);
+        uint256 settledSid = escrow.buy{value: 1 ether + 0.001 ether}(assetId);
+        vm.prank(seller);
+        escrow.deliver(settledSid, abi.encodePacked(K));
+        vm.prank(buyer);
+        escrow.confirm(settledSid);
+
+        // Prepare badSaleId in DELIVERED state for testGasDisputeMode1_Inconsistent
+        vm.prank(buyer);
+        badSaleId = escrow.buy{value: 1 ether + 0.001 ether}(badAssetId);
+        vm.prank(seller);
+        escrow.deliver(badSaleId, abi.encodePacked(K));
+
+        // Primary saleId in ESCROWED state for per-operation tests
         vm.prank(buyer);
         saleId = escrow.buy{value: 1 ether + 0.001 ether}(assetId);
     }
 
-    // Measure: buy (already done in setUp, but measure in isolation)
+    // Measure: isolated buy()
     function testGasBuy() public {
-        // measured via testGasConfirm which includes buy in setUp
+        vm.prank(buyer);
+        uint256 sid2 = escrow.buy{value: 1 ether + 0.001 ether}(assetId);
+        assertEq(uint8(escrow.getSale(sid2).state), uint8(SaleEscrow.State.ESCROWED));
     }
 
     function testGasDeliver() public {
         vm.prank(seller);
         escrow.deliver(saleId, abi.encodePacked(K));
+        assertEq(uint8(escrow.getSale(saleId).state), uint8(SaleEscrow.State.DELIVERED));
     }
 
     function testGasConfirm() public {
-        // Need delivered state first
         vm.prank(seller);
         escrow.deliver(saleId, abi.encodePacked(K));
         vm.prank(buyer);
         escrow.confirm(saleId);
+        assertEq(uint8(escrow.getSale(saleId).state), uint8(SaleEscrow.State.SETTLED));
+        assertGe(lic.balanceOf(buyer, assetId), 1);
     }
 
     function testGasDisputeMode1_Consistent() public {
@@ -106,7 +139,6 @@ contract GasBenchmark is Test {
             C[k] = bytes1(uint8(D[k]) ^ uint8(ks[k]));
         }
         bytes32 leafD = DisputeVerifier.plainLeaf(0, D);
-        bytes32 leafC = DisputeVerifier.cipherLeaf(0, C);
         bytes32[] memory pD = new bytes32[](0);
         bytes32[] memory pC = new bytes32[](0);
 
@@ -117,12 +149,24 @@ contract GasBenchmark is Test {
 
         vm.prank(buyer);
         escrow.disputeMode1(saleId, proof);
+        assertEq(uint8(escrow.getSale(saleId).state), uint8(SaleEscrow.State.SETTLED));
     }
 
     function testGasDisputeMode1_Inconsistent() public {
-        // Removed: inconsistent case requires committed C, not tampered C.
-        // Gas for inconsistent case is measured in testGasDisputeMode1_Consistent
-        // (same proof size, different outcome).
+        bytes32[] memory pD = new bytes32[](0);
+        bytes32[] memory pC = new bytes32[](0);
+
+        SaleEscrow.DisputeProof memory proof = SaleEscrow.DisputeProof({
+            K: K, N: N, s: s, index: 0, C_i: badC,
+            leafD: badLeafD, proofD: pD, proofC: pC
+        });
+
+        uint256 buyerBefore = buyer.balance;
+        vm.prank(buyer);
+        escrow.disputeMode1(badSaleId, proof);
+
+        assertEq(uint8(escrow.getSale(badSaleId).state), uint8(SaleEscrow.State.REFUNDED));
+        assertEq(buyer.balance, buyerBefore + 2 ether + 0.001 ether);
     }
 
     function testGasDisputeMode2() public {
@@ -130,6 +174,7 @@ contract GasBenchmark is Test {
         escrow.deliver(saleId, abi.encodePacked(K));
         vm.prank(buyer);
         escrow.disputeMode2(saleId);
+        assertEq(uint8(escrow.getSale(saleId).state), uint8(SaleEscrow.State.CHALLENGED));
     }
 
     function testGasRespond() public {
@@ -139,11 +184,14 @@ contract GasBenchmark is Test {
         escrow.disputeMode2(saleId);
         vm.prank(seller);
         escrow.respond(saleId, K, N, s);
+        assertEq(uint8(escrow.getSale(saleId).state), uint8(SaleEscrow.State.DELIVERED));
+        assertTrue(escrow.getSale(saleId).keyRevealed);
     }
 
     function testGasTimeoutDeliver() public {
         vm.warp(block.timestamp + 2 days);
         escrow.timeoutDeliver(saleId);
+        assertEq(uint8(escrow.getSale(saleId).state), uint8(SaleEscrow.State.REFUNDED));
     }
 
     function testGasTimeoutConfirm() public {
@@ -152,6 +200,7 @@ contract GasBenchmark is Test {
         vm.warp(block.timestamp + 4 days);
         vm.prank(seller);
         escrow.timeoutConfirm(saleId);
+        assertEq(uint8(escrow.getSale(saleId).state), uint8(SaleEscrow.State.SETTLED));
     }
 
     function testGasTimeoutRespond() public {
@@ -161,17 +210,23 @@ contract GasBenchmark is Test {
         escrow.disputeMode2(saleId);
         vm.warp(block.timestamp + 2 days);
         escrow.timeoutRespond(saleId);
+        assertEq(uint8(escrow.getSale(saleId).state), uint8(SaleEscrow.State.REFUNDED));
     }
 
     function testGasRoyaltyWithdraw() public {
-        // Removed: requires parent seller to have credit; tested in E2E.
+        uint256 balBefore = parentSeller.balance;
+        uint256 expectedCredit = (1 ether * 300) / 10000;
+        assertEq(royalty.creditOf(parentSeller), expectedCredit);
+        vm.prank(parentSeller);
+        royalty.withdraw();
+        assertEq(parentSeller.balance, balBefore + expectedCredit);
+        assertEq(royalty.creditOf(parentSeller), 0);
     }
 
     function testGasLicenceMint() public {
-        // Minted during confirm; measure confirm which includes mint
-        vm.prank(seller);
-        escrow.deliver(saleId, abi.encodePacked(K));
-        vm.prank(buyer);
-        escrow.confirm(saleId);
+        uint256 beforeBal = lic.balanceOf(buyer, assetId);
+        vm.prank(address(escrow));
+        lic.mint(buyer, assetId);
+        assertEq(lic.balanceOf(buyer, assetId), beforeBal + 1);
     }
 }

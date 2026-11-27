@@ -28,7 +28,7 @@ function toBuffer(b: Uint8Array): Buffer { return Buffer.from(b); }
 
 export function encryptFile(plaintext: Uint8Array, beta: number = 1024): EncryptedAsset {
   const K = new Uint8Array(randomBytes(32));
-  const N = new Uint8Array(randomBytes(16));
+  const N = new Uint8Array(randomBytes(32));
   const s = new Uint8Array(randomBytes(32));
   const saltD = new Uint8Array(randomBytes(32));
   const saltC = new Uint8Array(randomBytes(32));

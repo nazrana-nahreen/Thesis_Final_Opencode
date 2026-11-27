@@ -2,6 +2,10 @@
 
 **Base paper:** V. T. Truong, H. D. Le, L. B. Le, "Trust-Free Blockchain Framework for AI-Generated Content Trading and Management in Metaverse," *IEEE Access*, vol. 12, pp. 41815–41828, 2024. DOI: 10.1109/ACCESS.2024.3376509
 
+> **Status (2026-11-27).** Gas and test counts in this mapping use the measured build. The
+> authoritative numbers and scope limits are in docs/MEASURED_RESULTS.md; the thesis draft is
+> docs/THESIS_DRAFT.md.
+
 **Sources:**
 - Base-paper findings: `docs/base_paper_critical_review.md` (F1–F44)
 - MetaTrade-R findings: `audit/FINAL_INDEPENDENT_AUDIT.md` (F-01–F-15)
@@ -105,14 +109,14 @@
 | S-09 | F13 | **Exact payment + per-sale escrow + pull payment** — `msg.value == price + BUYER_BOND`; no shared mutable balance; `call{value:}` not `.transfer` | `SaleEscrow.buy`, `_pay`, `RoyaltySplitter` | `Adversarial.t.sol`, `Invariants.t.sol` | ✅ |
 | S-10 | F16 | **Royalty capped at 5000 bps**; child-set rate documented as limitation (not parent-authorised) | `AssetRegistry.list`, `SaleEscrow._settle` | `Adversarial.t.sol` | ◐ |
 | S-11 | F20 | **Correct ECIES naming and construction** — secp256k1, not "ECDSA_enc" | `crypto/keywrap.ts` | `keywrap.ts` | ✅ |
-| S-12 | F27 | **Full honest-cycle gas measurement reported** — 448,119 gas, not a partial sum | `GasBenchmark.t.sol` | `forge test --gas-report` | ✅ |
+| S-12 | F27 | **Full honest-cycle gas measurement reported** - 456,691 gas (30-run mean), not a partial sum | experiments/run_chain_experiments.mjs | experiments/results/chain/ | OK |
 | S-13 | F2, F3 | **Fair-exchange literature integrated** — CRC positioned as FairSwap-inspired adaptation, not a new protocol | `docs/LITERATURE_REVIEW.md`, paper §II-D | Literature review PDF | ✅ |
 | S-14 | F1 | **Explicit trust set TA1–TA12** — "trust-free" claim withdrawn and replaced by enumerated assumptions | `docs/THREAT_MODEL.md` | Paper §III-D | ✅ |
 | S-15 | F23 | **Adversary model + security objectives + proof sketches** — no formal verification claimed | `docs/THREAT_MODEL.md`, `docs/MATHEMATICAL_FORMULATION.md` | — | ◐ |
 | S-16 | F25 | **Bond-sizing incentive-compatibility model** — `b_s > ((1−P_d)/P_d)·p` with stated assumptions | `docs/MATHEMATICAL_FORMULATION.md` §10 | — | ◐ |
-| S-17 | F29, F31 | **Executable attack harness** — 17 scenarios, 15 blocked, 2 documented residual | `harness/attack_harness.py` | `harness/results/` | ◐ |
+| S-17 | F29, F31 | **Executable attack harness** — 18 scenarios (AT-01..17 + AT-30), 15 blocked, 1 mitigated, 2 documented residual | `harness/attack_harness.py` | `harness/results/` | ◐ |
 | S-18 | F31 | **Cryptographic test vectors** — RFC 4231 HMAC-SHA256 (cases 1–4), NIST SHA-256, Merkle index binding | `CryptoVectors.t.sol` (10 tests) | `forge test` | ◐ |
-| S-19 | F6, F11 | **Integrity vs semantic correctness separated** — integrity cryptographic/trustless; semantic probabilistic (preview + pHash signal + bond) | Paper §XI-E, `docs/THREAT_MODEL.md` | — | ✅ (conceptual) |
+| S-19 | F6, F11 | **Integrity vs semantic correctness separated** — integrity cryptographic, no trusted arbitrator; semantic probabilistic (preview + pHash signal + bond) | Paper §XI-E, `docs/THREAT_MODEL.md` | — | ✅ (conceptual) |
 | S-20 | F22 | **Fixed-size commitments on-chain** — only hashes, roots, and CIDs on-chain; no unbounded content | `AssetRegistry` struct | — | ✅ |
 | S-21 | F37, F38 | **Reproducibility package** — pinned versions, `REPRODUCE.sh`, `.env.example`, deploy script, seedless deterministic tests | `REPRODUCE.sh` | — | ◐ |
 
@@ -166,4 +170,4 @@ From `audit/FINAL_INDEPENDENT_AUDIT.md` (15 findings: 0 critical, 2 high, 4 medi
 
 **Base paper:** 44 findings — the core one being that payment is bound to a seller-declared hash of the seller's own ciphertext (F6), plus key-before-payment (F7), unlimited minting (F8), re-callable initialisation (F9), unimplemented plagiarism (F11), no timeouts (F12), and 2.1× cost under-reporting (F27).
 
-**MetaTrade-R:** 21 solution items — 12 fully implemented, 8 partial, 1 conceptual. The integrity property is cryptographic and trustless; semantic correctness remains probabilistic and is documented as residual risk AT-01, alongside dispute-path key disclosure AT-14.
+**MetaTrade-R:** 21 solution items — 12 fully implemented, 8 partial, 1 conceptual. The integrity property is cryptographic and decided without a trusted arbitrator; semantic correctness remains probabilistic and is documented as residual risk AT-01, alongside dispute-path key disclosure AT-14.

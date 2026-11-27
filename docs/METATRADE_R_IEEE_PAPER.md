@@ -9,7 +9,7 @@
 
 ## Abstract
 
-This paper presents MetaTrade-R, a blockchain-based research prototype for AI-generated content (AIGC) licence trading that addresses a critical flaw in the published MetaTrade framework [1]. MetaTrade claims trust-free trading by comparing a buyer-computed hash against a seller-declared hash over the seller's own ciphertext. This check establishes self-consistency, not binding to the advertised product: a malicious seller can upload arbitrary bytes, publish their hash, and receive payment. We conduct a reproducible code-level audit of MetaTrade's published Ethereum and Hyperledger Fabric implementations, identifying 15 security findings including a pre-payment key leak in the Fabric version, unlimited token minting, re-callable contract initialisation, unimplemented plagiarism and rating mechanisms, and cost under-reporting by a factor of 2.1. We then design and implement MetaTrade-R, which adapts a FairSwap-style exchange construction with per-buyer key wrapping to preserve confidentiality on the honest path. The system binds payment to pre-sale content commitments (SHA-256 hashes, Merkle roots, and key commitments) and provides on-chain, trustless integrity dispute resolution via HMAC-CTR consistency proofs. We separate integrity (cryptographic, trustless) from semantic correctness (probabilistic, economic) and derive explicit incentive-compatibility conditions linking seller bonds to fingerprint detection probability. The implementation comprises five Solidity contracts, a Fastify backend with 16 endpoints, real IPFS integration, and a TypeScript cryptographic reference. We measure 448,119 gas for an honest sale cycle and 324,580 gas per integrity dispute (single 32-byte block). We execute 47 automated tests and 17 attack scenarios (15 blocked, 2 documented residual risks). The system is not trust-free—it has 12 enumerated trust assumptions—and HMAC-CTR provides confidentiality only, not authenticated encryption. All experimental results are from single-run measurements on a local Anvil chain.
+This paper presents MetaTrade-R, a blockchain-based research prototype for AI-generated content (AIGC) licence trading that addresses a critical flaw in the published MetaTrade framework [1]. MetaTrade claims trust-free trading by comparing a buyer-computed hash against a seller-declared hash over the seller's own ciphertext. This check establishes self-consistency, not binding to the advertised product: a malicious seller can upload arbitrary bytes, publish their hash, and receive payment. We conduct a reproducible code-level audit of MetaTrade's published Ethereum and Hyperledger Fabric implementations, recording 44 catalogue entries (F1-F44); the security-relevant defects include a pre-payment key leak in the Fabric version, unlimited token minting, re-callable contract initialisation, unimplemented plagiarism and rating mechanisms, and cost under-reporting by a factor of 2.1. A separate severity-ranked self-audit of the repaired system records 15 findings (0 critical, 2 high, 4 medium, 5 low, 3 informational). We then design and implement MetaTrade-R, which adapts a FairSwap-style exchange construction with per-buyer key wrapping to preserve confidentiality on the honest path. The system binds payment to pre-sale content commitments (SHA-256 hashes, Merkle roots, and key commitments) and provides on-chain integrity dispute resolution without a trusted arbitrator via HMAC-CTR consistency proofs. We separate integrity (cryptographic, no arbitrator) from semantic correctness (probabilistic, economic) and derive explicit incentive-compatibility conditions linking seller bonds to fingerprint detection probability. The implementation comprises five Solidity contracts, a Fastify backend with 16 endpoints, real IPFS integration, and a TypeScript cryptographic reference. We measure 456,691 gas for a per-sale cycle (buy, deliver, confirm) and 241,278 gas for a Mode-1 integrity dispute, over 30 repetitions on a local Anvil chain. We execute 93 automated tests and 18 settlement attack scenarios (15 blocked, 1 economically mitigated, 2 documented residual risks). The system is not trust-free-it has 12 enumerated trust assumptions-and HMAC-CTR provides confidentiality only, not authenticated encryption. Gas and latency results are local-chain measurements, not mainnet estimates.
 
 **Index Terms:** AIGC trading, blockchain, content binding, fair exchange, smart contracts, dispute resolution, Merkle trees, HMAC-CTR, IPFS.
 
@@ -53,9 +53,9 @@ Our motivation stems from three observations:
 
 ### F. Main Contributions
 
-1. **Reproducible audit:** We identify 15 security findings in MetaTrade's published code, with file/function/line evidence. [C1]
+1. **Reproducible audit:** We record 44 catalogue entries (F1-F44) for MetaTrade's paper and published code, with file/function/line evidence, and a separate 15-item self-audit of the repaired system. [C1]
 2. **CRC settlement:** We adapt a FairSwap-style construction with per-buyer key wrapping, providing content-binding settlement with confidentiality on the honest path. [C2]
-3. **Integrity/semantic separation:** We distinguish cryptographic integrity (trustless, on-chain) from semantic correctness (probabilistic, economic) with distinct dispute procedures. [C3]
+3. **Integrity/semantic separation:** We distinguish cryptographic integrity (on-chain, no arbitrator) from semantic correctness (probabilistic, economic) with distinct dispute procedures. [C3]
 4. **Bond-sizing model:** We derive explicit incentive-compatibility conditions linking seller bonds to fingerprint detection probability. [C4]
 
 We do not claim a new fair-exchange protocol, a new cryptographic primitive, or formal verification.
@@ -120,7 +120,7 @@ Game-theoretic incentive mechanisms [24] model attack costs. MetaTrade-R's econo
 
 ### H. Comparative Analysis
 
-Table I compares the reviewed systems. No existing system simultaneously provides content-binding settlement, confidentiality on the honest path, on-chain trustless dispute resolution, and AIGC-specific licensing.
+Table I compares the reviewed systems. No existing system simultaneously provides content-binding settlement, confidentiality on the honest path, on-chain integrity dispute resolution without a trusted arbitrator, and AIGC-specific licensing.
 
 **Table I: Comparative analysis of existing research**
 
@@ -147,15 +147,15 @@ Table I compares the reviewed systems. No existing system simultaneously provide
 
 **G5:** No existing AIGC marketplace has been empirically audited at the code level.
 
-**G6:** No existing system provides on-chain, trustless dispute resolution for content correctness without ZK proofs or oracles (for the integrity property).
+**G6:** No existing system provides on-chain dispute resolution for content correctness without a trusted arbitrator, ZK proofs or oracles (for the integrity property).
 
 **G7:** No existing system provides AIGC-specific licence semantics on-chain.
 
-MetaTrade-R responds to G1 (CRC settlement), G2 (per-buyer key wrapping), G3 (integrity/semantic separation), G4 (P_d-linked bond model), and G5 (reproducible audit). G6 is partially addressed (integrity disputes are trustless; semantic disputes need an oracle). G7 is out of scope (Tier 3).
+MetaTrade-R responds to G1 (CRC settlement), G2 (per-buyer key wrapping), G3 (integrity/semantic separation), G4 (P_d-linked bond model), and G5 (reproducible audit). G6 is partially addressed (integrity disputes need no trusted arbitrator; semantic disputes need an oracle). G7 is out of scope (Tier 3).
 
 ### J. Chapter Summary
 
-This chapter reviewed 28 papers and standards across eight research areas. No existing system combines content-binding settlement with confidentiality on the honest path, on-chain trustless dispute resolution, and AIGC-specific licensing. MetaTrade-R's contributions are positioned as adaptations and empirical findings, not as novel cryptographic primitives.
+This chapter reviewed 28 papers and standards across eight research areas. No existing system combines content-binding settlement with confidentiality on the honest path, on-chain integrity dispute resolution without a trusted arbitrator, and AIGC-specific licensing. MetaTrade-R's contributions are positioned as adaptations and empirical findings, not as novel cryptographic primitives.
 
 ---
 
@@ -331,7 +331,7 @@ Merkle proof for leaf i: sibling path of length ⌈log₂ m⌉. Verification rec
 
 ### F. Two-Mode Dispute Resolution
 
-**Mode 1 (Integrity):** Buyer proves a block is inconsistent. No seller response needed. Deterministic outcome. ~324,580 gas.
+**Mode 1 (Integrity):** Buyer proves a block is inconsistent. No seller response needed. Deterministic outcome. ~241,278 gas (30-run mean, 10 repetitions).
 
 **Mode 2 (Non-delivery):** Buyer claims bad key/non-delivery. Seller must reveal valid K within T_respond (1 day). If valid → key revealed, buyer can run Mode 1. If invalid/timeout → buyer refunded + seller slashed.
 
@@ -515,32 +515,37 @@ Total: 17 endpoints. I'll report 17.
 
 ### B. Functional testing
 
-- 59 Solidity tests (DisputeVerifier: 7, CryptoVectors: 10, E2E: 2, Invariants: 1, Adversarial: 27, GasBenchmark: 12)
-- 14 backend tests (health, asset validation, sale validation, royalty, IPFS)
-- All pass
+- 72 Solidity tests across 7 suites, including three stateful invariants (256 runs, depth 256)
+- 14 backend integration tests (health, asset validation, sale validation, royalty, IPFS)
+- 7 watcher integration tests against a real local Anvil instance
+- All 93 pass on 2026-11-27 (commands in `docs/MEASURED_RESULTS.md`)
 
 ### C. Adversarial testing
 
-- 17 attack scenarios executed
-- 15 blocked (deterministic)
-- 2 residual (AT-01 semantic gap, AT-14 key leak)
-- Results recorded in `harness/results/B3_results.json` and `.csv`
+- 18 executable scenarios (AT-01..AT-17 plus AT-30) run through Foundry
+- 15 blocked, 1 mitigated by the buyer bond (AT-13), 2 residual (AT-01 semantic gap, AT-14 key leak)
+- AT-18..AT-29 are not settlement-contract tests and are not counted
+- Results regenerated from the tests in `harness/results/B3_results.json` and `.csv`
 
 ### D. Gas evaluation
 
-| Operation | Gas | Notes |
-|---|---|---|
-| `buy` | 201,658 | Includes bond lock |
-| `deliver` | 83,044 | Stores encK |
-| `confirm` | 163,417 | Includes royalty + licence mint |
-| `disputeMode1` | 324,580 | Single block, empty Merkle proofs |
-| `respond` | 161,235 | Key commitment + state transition |
-| `disputeMode2` | 132,030 | State transition only |
-| `timeoutDeliver` | 57,662 | Refund + slash |
-| `timeoutConfirm` | 164,797 | Pay seller |
-| `timeoutRespond` | 57,199 | Refund + slash |
+30 repetitions per operation (10 for dispute paths), local Anvil, 100-byte wrapped key.
 
-Honest sale cycle: 448,119 gas. Dispute: 324,580 gas (O(1) in file size).
+| Operation | n | Mean gas | Median | SD | p95 |
+|---|---:|---:|---:|---:|---:|
+| `list` | 50 | 181,647 | 181,652 | 7.27 | 181,652 |
+| `buy` | 50 | 182,100 | 181,758 | 2,418 | 181,758 |
+| `deliver` | 50 | 146,373 | 147,989 | 11,429 | 147,989 |
+| `confirm` | 30 | 128,218 | 128,218 | 2.19 | 128,218 |
+| `disputeMode1` | 10 | 241,278 | 241,280 | 5.06 | 241,280 |
+| `respond` | 10 | 158,443 | 158,447 | 8.1 | 158,447 |
+| `disputeMode2` | 10 | 33,160 | 33,160 | 0 | 33,160 |
+
+Per-sale cycle (buy + deliver + confirm): 456,691 gas, about 2.1x the unverified
+baselines (B1 217,860; B2 220,846). The old single-run figures (448,119 cycle,
+324,580 Mode 1, 83,044 deliver, 163,417 confirm, 201,658 buy) are superseded; the
+difference on `deliver` is mostly the 100-byte key versus the earlier 32-byte key.
+Dispute cost is O(1) in file size but not in proof length.
 
 ### E. IPFS
 
@@ -555,14 +560,15 @@ Honest sale cycle: 448,119 gas. Dispute: 324,580 gas (O(1) in file size).
 - Merkle: 4-leaf tree + index binding, all pass
 - TS ↔ Solidity byte compatibility: verified
 
-### G. Missing experiments [TO BE COMPLETED]
+### G. Experiment status
 
-- [TO BE COMPLETED: E2 — Correctness (100 honest sales, 20 dishonest, all resolved correctly)]
-- [TO BE COMPLETED: E3 — Attack suite on B0, B1, B2, B3 (30 trials each, Wilson CIs)]
-- [TO BE COMPLETED: E5 — Latency/throughput (p50/p95/p99 on Anvil and Sepolia)]
-- [TO BE COMPLETED: E6 — Storage/compute (bytes on IPFS and on-chain for 64KB-10MB, 1-1000 buyers)]
-- [TO BE COMPLETED: E7 — Economic simulation (attacker ROI vs bond, P_d)]
-- [TO BE COMPLETED: E8 — Plagiarism benchmark (TPR/FPR/EER on Copydays, Holidays, Oxford5k, DiffusionDB, GenImage, CIFAKE)]
+- E2 correctness: **done** (93 passing tests; 72 Foundry, 14 backend, 7 watcher)
+- E3 attack matrix: **done for the settlement attacks** (AT-01..AT-17, AT-30; 15 blocked, 1 mitigated, 2 residual). AT-18..AT-29 are not implemented as executable tests.
+- E4 gas: **done** (30 repetitions, mean/median/SD/p95)
+- E5 latency/throughput: **local only** (109.32 ms mean cycle, 9.15 sales/s sequential on Anvil). No Sepolia or wide-area measurement.
+- E6 storage/compute: **done as measurement plus model**. Storage is near parity with B0; no storage-saving claim.
+- E7 economics: **analytic only** (parameter sweep; no human-subject or market data)
+- E8 fingerprints: **pilot only** (80 Picsum photos, classical hashes; no AIGC dataset, no PDQ/CLIP/DINOv2). Rotation and horizontal flip fail; H5 is refuted and H6 is untested.
 
 ---
 
@@ -570,17 +576,18 @@ Honest sale cycle: 448,119 gas. Dispute: 324,580 gas (O(1) in file size).
 
 ### A. Functional test results
 
-- 59 Solidity tests: all pass (47 + 12 GasBenchmark)
+- 72 Solidity tests: all pass (includes 12 baseline tests and three invariants)
 - 14 backend tests: all pass
-- 17 attack scenarios: 15 blocked, 2 residual
+- 7 watcher tests: all pass
+- 18 attack scenarios: 15 blocked, 1 mitigated, 2 residual
 
 ### B. Adversarial test results
 
-See Section VIII attack table. 15/17 blocked. AT-01 (consistent garbage) and AT-14 (key leak on dispute) are documented residual risks.
+See Section VIII attack table. 15/18 blocked for B3. AT-01 (consistent garbage) and AT-14 (key leak on dispute) are documented residual risks; AT-13 is economically mitigated by the buyer bond, not prevented. B1 and B2 were executed on the attacks they implement, not on all 18.
 
 ### C. Gas measurements
 
-See Section IX.D. 9 operations measured. Honest sale: 448,119 gas. Dispute: 324,580 gas.
+See Section IX.D. 30 repetitions per operation. Per-sale cycle: 456,691 gas (B1 217,860; B2 220,846). Mode-1 dispute: 241,278 gas. Dispute Mode 2: 33,160 gas.
 
 ### D. IPFS results
 
@@ -612,8 +619,8 @@ See Section IX.D. 9 operations measured. Honest sale: 448,119 gas. Dispute: 324,
 5. No licence expiry enforcement.
 6. IPFS single node (no pinning incentive).
 7. No ZK proofs (too heavy).
-8. Single-run gas measurements (no statistical variance).
-9. Baselines B1/B2 not implemented.
+8. Gas is measured over 30 repetitions (10 for disputes) on one local host, not on mainnet.
+9. Baselines B1/B2 are implemented, but only for the attacks they support; the full 18-attack matrix was not run on them.
 10. Backend has no authentication/authorization.
 
 ---
@@ -622,15 +629,15 @@ See Section IX.D. 9 operations measured. Honest sale: 448,119 gas. Dispute: 324,
 
 ### A. What the results demonstrate
 
-The implementation demonstrates that content-binding settlement for AIGC licences is achievable on an EVM-compatible blockchain at a cost of ~448k gas for an honest sale and ~325k gas per dispute. The CRC protocol provides deterministic integrity verification without a trusted arbitrator, ZK proof, or oracle. The security analysis identifies 15 findings in the original MetaTrade implementation and provides a reproducible audit with an executable attack harness.
+The implementation demonstrates that content-binding settlement for AIGC licences is achievable on an EVM-compatible blockchain at a cost of ~457k gas for a per-sale cycle and ~241k gas per Mode-1 dispute. The CRC protocol provides deterministic integrity verification without a trusted arbitrator, ZK proof, or oracle. The security analysis records 44 catalogue entries for the original MetaTrade paper and implementations and provides a reproducible audit; the repaired system has its own 15-item severity-ranked self-audit. The attack matrix is built directly from the Foundry tests.
 
 ### B. What the results do not demonstrate
 
 - Semantic correctness (committed bytes are the advertised asset) is not guaranteed.
 - Confidentiality is not preserved on the dispute path.
-- The gas measurements are from a single run on a local chain, not a statistically significant benchmark.
-- The attack scenarios are analytical (15/17 blocked by design), not empirical measurements against a live adversary.
-- The plagiarism detection robustness (P_d) has not been measured.
+- The gas measurements are 30 repetitions on one local chain, not a multi-node or mainnet benchmark.
+- The attack scenarios are executed against local contracts (15/18 blocked, 1 mitigated), not against a live adversary.
+- Fingerprint robustness was measured only in an 80-image classical-hash pilot; rotation and flip fail, and no AIGC dataset was used.
 
 ### C. Comparison with original MetaTrade
 
@@ -642,7 +649,7 @@ The integrity dispute costs ~325k gas (single block, empty Merkle proof). For a 
 
 ### E. Integrity vs semantic correctness
 
-Integrity (cryptographic, trustless): you receive the committed bytes. Semantic correctness (probabilistic, economic): the committed bytes are the advertised asset. No hash can prove the second. MetaTrade-R provides the first; the second requires preview + fingerprint + bond + reputation.
+Integrity (cryptographic, no arbitrator): you receive the committed bytes. Semantic correctness (probabilistic, economic): the committed bytes are the advertised asset. No hash can prove the second. MetaTrade-R provides the first; the second requires preview + fingerprint + bond + reputation.
 
 ### F. Confidentiality vs dispute transparency
 
@@ -666,7 +673,7 @@ The audit reveals that a peer-reviewed paper's security claims are not enforced 
 2. **External validity:** Local chain, single host. Not representative of mainnet.
 3. **Construct validity:** Attack success criteria may not capture real adversaries.
 4. **Reproducibility:** Pinned versions, Docker, seeds. But no CI for full E2E.
-5. **Measurement limitations:** Single-run, no CIs, no statistical tests.
+5. **Measurement limitations:** Gas has 30 repetitions but only one host; latency is localhost; E8 is a pilot with one split.
 
 ### J. Lessons learned
 
@@ -686,10 +693,10 @@ The audit reveals that a peer-reviewed paper's security claims are not enforced 
 4. **IPFS availability:** No pinning incentive. StorageBond (Tier 3) would address this.
 5. **Backend security:** No authentication, authorization, HTTPS, or multi-user support.
 6. **Operator key management:** Single key for all writes. Production would use multisig.
-7. **Event watcher:** Implemented but untested. Simplified timeout logic.
-8. **Missing baselines:** B1 (naive escrow) and B2 (FairSwap-style) not implemented.
-9. **Missing experiments:** E2-E8 not run.
-10. **Single-run gas:** No statistical variance.
+7. **Event watcher:** Refactored and covered by 7 integration tests against Anvil; reorg/rollback handling is still not implemented.
+8. **Baselines:** B1 (naive escrow) and B2 (FairSwap-style) are implemented and tested for the attacks they support.
+9. **Experiments:** E2-E7 are done (local); E8 is a pilot on 80 web photos with classical hashes only.
+10. **Gas statistics:** 30 repetitions on one host; not mainnet.
 11. **No formal verification:** Proof sketches only.
 12. **Licence expiry:** Metadata only, not enforced on-chain.
 13. **Multi-user production:** Not supported.
@@ -699,7 +706,7 @@ The audit reveals that a peer-reviewed paper's security claims are not enforced 
 
 ## XIII. CONCLUSION
 
-This paper presented MetaTrade-R, a research prototype for AIGC licence trading that addresses a critical flaw in the published MetaTrade framework. We conducted a reproducible code-level audit identifying 15 security findings, including a core flaw where payment is not bound to the advertised content. We designed CRC — a FairSwap-inspired construction with per-buyer key wrapping that binds payment to pre-sale content commitments and provides on-chain, trustless integrity dispute resolution. We separated integrity from semantic correctness and derived explicit bond-sizing conditions linked to fingerprint detection probability. The implementation comprises five Solidity contracts, a Fastify backend with 17 endpoints, real IPFS integration, and a TypeScript cryptographic reference. We measured 448,119 gas for an honest sale cycle and 324,580 gas per integrity dispute. We executed 47 automated tests and 17 attack scenarios (15 blocked, 2 residual). The system is not trust-free — it has 12 enumerated trust assumptions — and HMAC-CTR provides confidentiality only, not authenticated encryption. All experimental results are from single-run measurements on a local Anvil chain. The thesis is defensible as a systems and empirical security contribution, with honest acknowledgment of its limitations.
+This paper presented MetaTrade-R, a research prototype for AIGC licence trading that addresses a critical flaw in the published MetaTrade framework. We conducted a reproducible code-level audit recording 44 catalogue entries (F1-F44), including a core flaw where payment is not bound to the advertised content, and a separate 15-item self-audit of the repaired system. We designed CRC - a FairSwap-inspired construction with per-buyer key wrapping that binds payment to pre-sale content commitments and provides on-chain integrity dispute resolution without a trusted arbitrator. We separated integrity from semantic correctness and derived explicit bond-sizing conditions linked to fingerprint detection probability. The implementation comprises five Solidity contracts, a Fastify backend with 16 endpoints, real IPFS integration, and a TypeScript cryptographic reference. We measured 456,691 gas for a per-sale cycle (buy, deliver, confirm) and 241,278 gas per Mode-1 integrity dispute over 30 repetitions on a local Anvil chain. We executed 93 automated tests and 18 settlement attack scenarios (15 blocked, 1 mitigated, 2 residual). The system is not trust-free - it has 12 enumerated trust assumptions - and HMAC-CTR provides confidentiality only, not authenticated encryption. Storage is at parity with the published baseline, not a reduction; gas is about 2.1x the unverified baselines. The thesis is defensible as a systems and empirical security contribution, with honest acknowledgment of its limitations.
 
 ---
 
@@ -707,7 +714,7 @@ This paper presented MetaTrade-R, a research prototype for AIGC licence trading 
 
 [1] V. T. Truong, H. D. Le and L. B. Le, "Trust-Free Blockchain Framework for AI-Generated Content Trading and Management in Metaverse," IEEE Access, vol. 12, pp. 41815-41828, 2024. DOI: 10.1109/ACCESS.2024.3376509
 
-[2] S. Wang et al., "Survey on Blockchain based Smart Contracts: Technical Aspects and Future Research," IEEE Access, 2023.
+[2] T. M. Hewa, Y. Hu, M. Liyanage, S. S. Kanhere and M. Ylianttila, "Survey on Blockchain-Based Smart Contracts: Technical Aspects and Future Research," IEEE Access, vol. 9, pp. 87643-87662, 2021. DOI: 10.1109/ACCESS.2021.3068178
 
 [3] K. Balan, A. Gilbert and J. Collomosse, "Decentralized Creative Copyright Exchange in the Age of Generative AI," DECADE Technical Report, Nov. 2025.
 
@@ -743,7 +750,7 @@ This paper presented MetaTrade-R, a research prototype for AIGC licence trading 
 
 [19] J. Camenisch and V. Shoup, "Practical Verifiable Encryption and Decryption of Discrete Logarithms," Proc. CRYPTO, 2003.
 
-[20] "Merkle-Tree-Based Verifiable Public Data Auditing," arXiv:2610.36001, 2026.
+[20] S. R. Tadi, K. G. Rao, M. V. Gopalachari, C. C. Reddy and J. Bhimireddy, "Merkle-Tree-Based Verifiable Public Data Auditing for Cloud Object Storage Using Smart Contracts," arXiv:2610.36001 [cs.CR], Oct. 2026. DOI: 10.48550/arXiv.2610.36001
 
 [21] "Transparency Overlays and Applications," Proc. ACM CCS, 2016. DOI: 10.1145/2976749.2978404
 
@@ -759,7 +766,7 @@ This paper presented MetaTrade-R, a research prototype for AIGC licence trading 
 
 [27] "Provenance Verification of AI-Generated Images via Perceptual Hash Registry on Blockchain," arXiv:2602.02412, 2026.
 
-[28] "A Blockchain-Based Framework for Content Provenance and Authenticity," 2024.
+[28] E. Bureacă and I. Aciobăniței, "A Blockchain based Framework for Content Provenance and Authenticity," in Proc. 16th Int. Conf. Electronics, Computers and Artificial Intelligence (ECAI), 2024, pp. 1-5. DOI: 10.1109/ECAI61503.2024.10607477
 
 ---
 
@@ -886,24 +893,31 @@ This paper presented MetaTrade-R, a research prototype for AIGC licence trading 
 3. `npm install`
 4. `forge install foundry-rs/forge-std --no-commit`
 5. `forge install OpenZeppelin/openzeppelin-contracts --no-commit`
-6. `pip install web3`
-7. `ipfs init`
-8. `forge build`
-9. `forge test` (59 tests)
-10. `node scripts/deploy.mjs` (deploy contracts)
-11. `npx tsc` (compile TypeScript)
-12. `ipfs daemon` (start IPFS)
-13. `node dist/api/src/server.js` (start backend)
-14. `node --test tests/backend.test.mjs` (14 tests)
-15. `python harness/attack_harness.py --system B3 --out harness/results` (17 attacks)
-16. `npx tsx cli.ts health` (CLI check)
+6. `ipfs init` (Kubo, for the backend)
+7. `forge build`
+8. `forge test` (72 tests)
+9. `node scripts/deploy.mjs` (deploy contracts)
+10. `npx tsc` (compile TypeScript)
+11. `ipfs daemon --offline` (start IPFS)
+12. `node dist/api/src/server.js` (start backend)
+13. `node --test tests/backend.test.mjs` (14 tests)
+14. `node --test tests/watcher.test.mjs` (7 tests; spawns its own Anvil on 8546)
+15. `python harness/attack_harness.py --system all --out harness/results` (real Foundry-backed matrix)
+16. `node experiments/run_chain_experiments.mjs --runs 30 --latency 100` (gas/latency)
+17. `node experiments/e6_storage_compute.mjs`; `python experiments/e7_economics.py`
+18. `python experiments/e8_fingerprint.py --n-images 80 --seed 1234` (pilot)
+19. `npx tsx cli.ts health` (CLI check)
 
 ### Expected results
-- 59 Solidity tests: all pass
+- 72 Solidity tests: all pass
 - 14 backend tests: all pass
-- 17 attack scenarios: 15 blocked, 2 residual
+- 7 watcher tests: all pass
+- 18 attack scenarios: 15 blocked, 1 mitigated, 2 residual
 - IPFS round-trip: verified
-- Gas: 448,119 (honest), 324,580 (dispute)
+- Per-sale cycle: 456,691 gas mean; Mode-1 dispute: 241,278 gas mean
+- E8 pilot: 76.8% ensemble TPR at 1.01% measured FPR; rotations fail
+
+All current numbers and their exact commands are in `docs/MEASURED_RESULTS.md`.
 
 ---
 
@@ -918,25 +932,27 @@ This paper presented MetaTrade-R, a research prototype for AIGC licence trading 
 | No formal verification | MATHEMATICAL_FORMULATION.md | ✅ Proof sketches only | None |
 | HMAC-CTR is AEAD | — | ❌ Not AEAD | Documented (F-01) |
 | Semantic correctness | — | ❌ Not guaranteed | Documented (AT-01) |
-| Gas: 448,119 (honest) | GasBenchmark.t.sol | ✅ Measured | None |
-| Gas: 324,580 (dispute) | GasBenchmark.t.sol | ✅ Measured | Single block only |
-| 47 Solidity tests | test/*.sol | ✅ 59 tests (was 47 before GasBenchmark) | Updated count |
+| Gas: 456,691 per-sale cycle | experiments/results/chain/summary.json | ✅ 30 runs | Formerly 448,119 single-run |
+| Gas: 241,278 Mode 1 | experiments/results/chain/summary.json | ✅ 10 runs | Single block, empty proofs |
+| 72 Solidity tests | test/*.sol | ✅ 72 pass | Includes 12 baseline tests |
 | 14 backend tests | tests/backend.test.mjs | ✅ All pass | None |
-| 17 attack scenarios | harness/attack_harness.py | ✅ 15 blocked, 2 residual | None |
+| 7 watcher tests | tests/watcher.test.mjs | ✅ All pass | Real Anvil on port 8546 |
+| 18 attack scenarios | harness/attack_harness.py | ✅ 15 blocked, 1 mitigated, 2 residual | AT-01..17 + AT-30 |
+| Storage reduction | experiments/results/e6/summary.json | ❌ No reduction | B0 also stores one key per buyer |
 
 ---
 
 ## MISSING WORK CHECKLIST
 
 ### Before submission
-- [ ] Verify references [2], [20], [28] against publisher records
-- [ ] Run E2-E8 experiments
-- [ ] Implement baselines B1/B2
-- [ ] Multi-run gas benchmarking (30 runs, CIs)
-- [ ] Thesis write-up (8 chapters)
-- [ ] Clean-environment validation (scripted)
-- [ ] Watcher tests
-- [ ] Next.js UI (optional)
+- [x] References [2], [20], [28] verified against Crossref/arXiv records (2026-11-27)
+- [x] E2-E7 experiments (local); [ ] E8 full benchmark (pilot only: 80 photos, classical hashes)
+- [x] Implement baselines B1/B2
+- [x] Multi-run gas benchmarking (30 runs, mean/median/SD/p95)
+- [x] Thesis draft (8 chapters in `docs/THESIS_DRAFT.md`; placeholders and final reference check remain)
+- [x] Scripted verification (`scripts/verify_all.mjs`); clean-machine/container run still pending
+- [x] Watcher tests (7 integration tests against Anvil)
+- [ ] Next.js UI (optional, deleted)
 
 ### Before defense
 - [ ] Practice viva questions (50+ prepared)
@@ -953,17 +969,17 @@ This paper presented MetaTrade-R, a research prototype for AIGC licence trading 
 |---|---|---|
 | Technical correctness | 8/10 | Core logic sound; CEI deviation documented |
 | Research contribution | 7/10 | Audit + adaptation + measurement; not a new protocol |
-| Experimental completeness | 4/10 | E2-E8 not run; single-run gas |
-| Reproducibility | 7/10 | Pinned versions; manual steps; no CI for full E2E |
+| Experimental completeness | 7/10 | E2-E7 done locally; E8 is a pilot; no AIGC dataset |
+| Reproducibility | 8/10 | Pinned versions; real harness and watcher tests; no CI for full E2E |
 | Reference quality | 8/10 | 25/28 verified; 3 need verification |
-| Academic writing quality | 6/10 | Design docs complete; thesis text not started |
-| Submission readiness | 5/10 | Needs experiments, baselines, and write-up |
+| Academic writing quality | 6/10 | Four sections + measured-results annex; eight chapters not written |
+| Submission readiness | 7/10 | Experiments and baselines done; write-up and clean-env validation remain |
 
 **Major weaknesses:**
-1. No experimental results (E2-E8 not run).
-2. No baseline comparison (B1/B2 not implemented).
-3. No thesis text (write-up not started).
-4. Single-run gas measurements (no statistical variance).
-5. Watcher untested.
+1. Eight-chapter thesis text is not written (results annex exists).
+2. No AIGC dataset or learned fingerprints; E8 is a classical-hash pilot.
+3. Latency/throughput is localhost only.
+4. Watcher has no reorg handling.
+5. Clean-machine reproduction has not been scripted.
 
-**Recommendation:** The project is ready for thesis manuscript preparation for the audit, design, implementation, security, and preliminary gas chapters. Experimental results and baseline comparison require E2-E8 and B1/B2 implementation during the writing phase. The thesis is defensible as a systems and empirical security contribution even if E2-E8 produce negative results. (c) 2026 MetaTrade-R Research Team. All rights reserved.
+**Recommendation:** The audit, design, implementation, security and measured-results chapters are defensible. The remaining work is the thesis prose, a clean-environment script, and either a full E8 or an explicit scope statement that the fingerprint study is a pilot. Negative results (rotation/flip failures, storage parity, 2.1x gas) are reported rather than hidden. (c) 2026 MetaTrade-R Research Team. All rights reserved.

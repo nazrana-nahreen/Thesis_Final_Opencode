@@ -84,7 +84,7 @@ MetaTrade's central confusion is that one hash check is made to carry two differ
 
 These are not the same, and no hash commitment can establish the second. A seller can commit to garbage consistently. The thesis separates them:
 
-- Integrity is **cryptographic and trustless** (C2).
+- Integrity is **cryptographic and decided on-chain without a trusted arbitrator** (C2).
 - Semantic correctness is **economic and perceptual**: a preview is published, its fingerprint is committed, the buyer compares after delivery, and misdescription is deterred by a bond sized against the fingerprint's detection probability (C4), with disputes resolved by a bonded oracle or committee because the judgment is inherently subjective.
 
 This separation is a framing contribution. It is not a mechanism, and the thesis should say so. Its value is that it tells designers which guarantee they are buying and at what trust cost.
