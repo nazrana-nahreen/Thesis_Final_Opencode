@@ -1,15 +1,16 @@
-# Measured results (this build)
+# Measured results (28 November 2026 rerun)
 
-Generated from the repository state on 2026-11-27. Every number below is read
-from an artefact in `experiments/results/` or from a test run on this machine.
-Nothing here is projected or copied from the earlier single-run tables.
+Generated from the repository state on 2026-11-28. Measurements are read from
+`experiments/results/full_rerun_20261128/` unless stated otherwise. The backend
+integration suite is the exception: its previous pass is retained as historical
+evidence but could not be rerun because Kubo was unavailable.
 
 ## 0. Environment and commands
 
 - Windows, Node v22.14.0, Python 3.10.9, Foundry/Anvil 1.10.0.
 - Solidity 0.8.31, `optimizer = true`, `optimizer_runs = 200`, `via_ir = true`
   (`foundry.toml`).
-- Chain: local Anvil, chain id 31337, fresh state per experiment.
+- Chain: local Anvil, chain id 31337; fresh contract deployments where applicable.
 - Tests: `forge test`; `node --test tests/backend.test.mjs`;
   `node --test tests/watcher.test.mjs`.
 - One-command check: `node scripts/verify_all.mjs` (Foundry, watcher, backend);
@@ -18,22 +19,25 @@ Nothing here is projected or copied from the earlier single-run tables.
 - Gas/latency: `node experiments/run_chain_experiments.mjs --runs 30 --latency 100`.
 - Compute/storage: `node experiments/e6_storage_compute.mjs`.
 - Economics: `python experiments/e7_economics.py`.
-- Fingerprints: `python experiments/e8_fingerprint.py --n-images 80 --seed 1234`.
+- Fingerprints: `python experiments/e8_fingerprint.py --n-images 80 --seed 1234
+  --offline-manifest experiments/results/e8/e8_fingerprint.json
+  --out experiments/results/full_rerun_20261128/e8`.
 
 ## 1. Correctness (E2)
 
 | Suite | Tests | Result |
 |---|---:|---|
 | Foundry (`forge test`) | 78 | 78 pass |
-| Backend integration (`tests/backend.test.mjs`) | 14 | 14 pass |
+| Backend integration (`tests/backend.test.mjs`) | 14 | Prior recorded run passed; not rerun (Kubo unavailable) |
 | Watcher integration (`tests/watcher.test.mjs`) | 7 | 7 pass |
-| **Total** | **99** | **99 pass** |
+| **Total** | **99 recorded** | **85 pass in this rerun; 14 prior passes not reverified** |
 
 The Foundry suite includes three stateful invariants (256 runs, depth 256, 65,536 calls across all
 10 Handler actions including disputes, responses, and timeouts),
 the two baseline contracts (B1, B2), and fixed `GasBenchmark.t.sol` measurements. The watcher suite deploys fresh contracts
 on a dedicated Anvil instance (port 8546), advances time with `evm_increaseTime`
-and asserts on-chain state after submission.
+and asserts on-chain state after submission. The 14 backend passes are from the prior recorded
+run; no fresh HTTP/IPFS integration pass is claimed here.
 
 ## 2. Attack matrix (E3)
 
@@ -100,44 +104,49 @@ come from cold/warm storage and different path positions, not from chain
 congestion. These are local-chain numbers; mainnet L1 gas is higher and
 calldata-dependent.
 
-## 4. Latency and sequential throughput (E5, idle fresh-Anvil host)
+## 4. Latency and sequential throughput (E5)
 
-Three independent 100-cycle runs were executed sequentially on an idle local
-fresh Anvil node (`--port 8547`, no competing `forge`/`node` load), with each
-receipt awaited:
+Four 100-cycle batches were executed sequentially on local Anvil with a newly deployed B3 contract
+suite for each batch; each transaction receipt was awaited. Run 1 followed E4 transactions; runs
+2–4 were latency-only. They used the same Anvil process, not four fresh nodes.
 
-- Run 1: **114.18 ms** mean cycle, **8.76 sales/s**
-- Run 2: **147.35 ms** mean cycle, **6.79 sales/s**
-- Run 3: **138.89 ms** mean cycle, **7.20 sales/s**
-- **Median across 3 runs**: **138.89 ms** mean cycle time, **7.20 sales/s**
+| Run | Mean cycle time | Sequential throughput |
+|---|---:|---:|
+| 1 | 39.96 ms | 25.03 sales/s |
+| 2 | 51.49 ms | 19.42 sales/s |
+| 3 | 71.20 ms | 14.04 sales/s |
+| 4 | 84.04 ms | 11.90 sales/s |
+| **Median across runs** | **61.35 ms** | **16.73 sales/s** |
 
-This is a local, single host, machine-dependent measurement with instant mining.
-It is not a network throughput claim and says nothing about concurrent users or
-L1 block times. Differences across runs reflect local RPC scheduling variance,
-not contract changes.
+The medians are calculated independently across the four run-mean cycle times and per-run
+throughputs; the median throughput is not obtained by inverting the median cycle time. This is a
+local, single-host measurement with instant mining, not a network-throughput claim. Host scheduling,
+RPC, and runtime warm-up effects limit comparability; it says nothing about concurrent users or L1
+block times. Raw files and logs are retained in the corresponding `chain_run_1..4` subdirectories.
 
 ## 5. Off-chain compute and storage model (E6)
 
-Measured on this machine (idle host re-run) with the TypeScript reference implementation.
-Deterministic byte counts and storage model are unchanged from the prior run; wall-clock compute
-timings reflect idle-host execution:
+Measured on this machine with the TypeScript reference implementation. Deterministic byte counts
+and the storage model are stable; wall-clock timings are from the 28 November rerun
+(`experiments/results/full_rerun_20261128/e6/summary.json`) and vary across runs:
 
 | Input | Encryption time (mean of 10) | Blocks `m` |
 |---|---:|---:|
-| 64 KiB | 21.96 ms | 64 |
-| 256 KiB | 81.32 ms | 256 |
-| 1 MiB | 244.49 ms | 1,024 |
-| 5 MiB | 1,414.49 ms | 5,120 |
-| 10 MiB | 3,495.70 ms | 10,240 |
+| 64 KiB | 12.681 ms | 64 |
+| 256 KiB | 43.245 ms | 256 |
+| 1 MiB | 189.239 ms | 1,024 |
+| 5 MiB | 1,033.216 ms | 5,120 |
+| 10 MiB | 2,008.809 ms | 10,240 |
 
-- ECIES key wrap (secp256k1, `eciesjs`): **128 bytes** (unchanged), **96.03 ms** mean over
-  100 runs (SD 7.00 ms). This is a JS implementation cost, not a bound.
-- One-block consistency verification: **0.547 ms** mean (100 runs).
+- ECIES key wrap (secp256k1, `eciesjs`): **129 bytes** (65-byte ephemeral public key, 16-byte IV,
+  32-byte ciphertext, 16-byte tag), **33.939 ms** mean over 100 runs (SD 7.697 ms). This is a JS
+  implementation cost, not a bound.
+- One-block consistency verification: **0.179 ms** mean (100 runs).
 - Logical on-chain record per asset: 367 bytes (the raw sum of the `Asset` struct fields in `AssetRegistry.sol`: 20 bytes seller address + 9 * 32 bytes commitments/hashes + 4 bytes m + 4 bytes blockSize + 8 bytes price + 2 bytes royaltyBps + 32 bytes parentAssetId + 1 byte active + 8 bytes listedAt), or 399 bytes when including the 32-byte `mapping(uint256 => Asset)` lookup key slot (unchanged).
 
 Storage model: the ciphertext is stored once on IPFS in B0, B2 and B3. The
 published Ethereum B0 stores a per-buyer key string
-(`customerAddrToData[buyer].encryptedSymmetricKey`); B3 stores a 128-byte
+(`customerAddrToData[buyer].encryptedSymmetricKey`); B3 stores a 129-byte
 wrapped key per sale. At 1,000 buyers the model (5 MiB asset, 128-byte B0 key
 assumption) is:
 
@@ -145,11 +154,12 @@ assumption) is:
 |---|---:|
 | B0 | 5,370,880 |
 | B2 | 5,242,912 |
-| B3 | 5,370,880 |
+| B3 | 5,371,880 |
 
-**There is no storage saving to claim.** An earlier draft claimed a 976x
-reduction by assuming B0 re-uploads the full asset per buyer; that is not what
-the published contract does. The comparison with B0 is about verification,
+**There is no storage saving to claim.** At 1,000 buyers B3 is 1,000 bytes
+(about 0.02%) larger than B0. An earlier draft claimed a 976x reduction by
+assuming B0 re-uploads the full asset per buyer; that is not what the published
+contract does. The comparison with B0 is about verification,
 dispute rights and royalties, not bytes.
 
 ## 6. Bond economics (E7)
@@ -172,7 +182,10 @@ the asset price (`1.00x`).
 | 0.70 | 0.43x | 1.00x | yes |
 | 0.90 | 0.11x | 1.00x | yes |
 
-The deterrence result is conditional on the model: risk-neutral attacker,
+The rerun uses `c_g = 0` and `c_d = 0.1p`; `c_h = 0.1p` is used only for the reported honest-profit
+column. The script marks an attack deterred when its expected profit is negative. At `P_d = 0.5`,
+the expected attack profit is `-0.05p` with defense cost included; ignoring that cost makes
+deterrence marginal at a 1.00x bond. The result is conditional on the model: risk-neutral attacker,
 proportional costs, detection probability known, and a solvent bond. It does
 not establish that sellers actually post such bonds, nor that `Pd` is known.
 At `Pd = 0.5` the attacker's expected profit is exactly zero before costs, so
@@ -182,10 +195,14 @@ so the required bond multiple is bounded from below by 1.00x.
 
 ## 7. Fingerprint pilot (E8)
 
-80 Picsum photographs (Unsplash), 512x512, seeds 1000..1079. Identity split
+80 Picsum photographs (Unsplash), 512x512, seeds 1000..1079. The 28 November run replayed the
+validated cached images from the previous successful manifest (80 reused, 0 downloaded); it is a
+computational rerun, not a fresh dataset acquisition. Identity split
 32/16/32 calibration/validation/test, seed 1234. 28 transformations, 896 test
 positive pairs, 494 test negative pairs. Thresholds selected on validation at
 FPR closest to 1%.
+The source images are local inputs and are not tracked in the repository. A fresh checkout needs
+network access for acquisition or a separately supplied cache to repeat the offline replay.
 
 | Method | TPR@1% FPR (95% CI) | Test FPR | EER | AUC |
 |---|---|---:|---:|---:|
@@ -204,7 +221,8 @@ untested. H5 (pHash geometric TPR < 50%) is refuted at 57.0%. No AIGC dataset
 (Copydays, Holidays, Oxford5k, GenImage, DiffusionDB) was evaluated. Do not
 cite these numbers as AIGC robustness.
 
-Full tables and per-transformation counts: `experiments/results/e8/E8_REPORT.md`.
+Full tables and per-transformation counts:
+`experiments/results/full_rerun_20261128/e8/E8_REPORT.md`.
 
 ## 8. Corrections made in this round
 
@@ -222,8 +240,10 @@ Full tables and per-transformation counts: `experiments/results/e8/E8_REPORT.md`
    published contract stores a per-buyer key string, so the claim is withdrawn.
    The corrected model shows storage parity.
 5. The attack count "15 blocked, 2 residual" mixed AT-13 into "blocked" and
-   omitted AT-30. Correct count: 15 blocked, 1 mitigated, 2 residual across
-   AT-01..17 and AT-30.
+   omitted AT-30. At that revision the correct count was 15 blocked,
+   1 mitigated, 2 residual across AT-01..17 and AT-30. After AT-31 and AT-32
+   were added, the current build has 20 scenarios: 17 blocked, 1 mitigated,
+   2 residual.
 6. Gas is now 30 repetitions per operation (10 for dispute paths) with mean,
    median, SD and p95, not a single cold run.
 7. Royalty credits were recorded but not funded: `_settle` called
@@ -249,6 +269,15 @@ Full tables and per-transformation counts: `experiments/results/e8/E8_REPORT.md`
     reverting repeat `disputeMode2()` calls with `AlreadyChallenged()`, extended `Invariants.t.sol`
     to all 10 Handler actions (65,536 calls pass), audited/fixed `GasBenchmark.t.sol` stub tests,
     confirmed E8 unchanged (seed 1234 deterministic) and E6 byte counts unchanged with updated idle timings.
+13. ECIES wrapped-key size was reported as 128 bytes because the measurement assumed a `0x`
+    prefix. `eciesjs` returns unprefixed hex, and the actual wrap is 129 bytes (65-byte ephemeral
+    public key, 16-byte IV, 32-byte ciphertext, 16-byte tag). `e6_storage_compute.mjs` now handles
+    both forms; the storage model still shows parity (B3 is 1,000 bytes larger than B0 at 1,000 buyers).
+14. `.env` was tracked in git and contained the well-known Anvil development key. It is now
+    untracked and ignored; `.env.example` remains. The key is public test material, not a real
+    secret, but a clean deployment should generate a fresh key.
+15. `scripts/deploy.mjs --write-env` writes deployed addresses into `.env`; `REPRODUCE.sh` now uses
+    it, so a clean checkout no longer points the backend at placeholder addresses.
 
 ## 9. What is still missing
 

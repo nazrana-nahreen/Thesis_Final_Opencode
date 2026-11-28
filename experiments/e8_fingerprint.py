@@ -24,6 +24,7 @@ import hashlib
 import io
 import json
 import math
+import shutil
 import sys
 import time
 import zlib
@@ -451,6 +452,55 @@ def load_rgb512(path: Path) -> Image.Image:
         return im.copy()
 
 
+def reuse_cached_dataset(seeds, dest: Path, size: int, manifest_path: Path):
+    """Replay a previously downloaded dataset after validating its local cache."""
+    manifest_path = manifest_path.resolve()
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    dataset = manifest.get("dataset", {})
+    if manifest.get("status") != "ok":
+        raise ValueError(f"cached dataset manifest is not successful: {manifest_path}")
+    if dataset.get("seeds") != seeds or dataset.get("image_size") != [size, size]:
+        raise ValueError("cached dataset manifest does not match requested seeds and image size")
+
+    records = {record.get("seed"): record for record in dataset.get("records", [])}
+    dest.mkdir(parents=True, exist_ok=True)
+    replayed = []
+    root = REPO_ROOT.resolve()
+    for seed in seeds:
+        record = records.get(seed)
+        if record is None:
+            raise ValueError(f"cached dataset manifest has no record for seed {seed}")
+        source = (root / record["path"]).resolve()
+        try:
+            source.relative_to(root)
+        except ValueError as exc:
+            raise ValueError(f"cached image path escapes repository for seed {seed}") from exc
+        if not source.is_file():
+            raise FileNotFoundError(f"cached image missing for seed {seed}: {source}")
+
+        payload = source.read_bytes()
+        cached_hash = hashlib.sha256(payload).hexdigest()
+        if not record.get("reencoded", False) and cached_hash != record.get("sha256_original_bytes"):
+            raise ValueError(f"cached image hash mismatch for seed {seed}")
+        with Image.open(io.BytesIO(payload)) as image:
+            image.load()
+            normalized = ImageOps.exif_transpose(image)
+            if normalized.size != (size, size):
+                raise ValueError(f"cached image has unexpected dimensions for seed {seed}")
+
+        target = dest / f"seed_{seed}.jpg"
+        if source != target.resolve():
+            shutil.copyfile(source, target)
+        replayed.append({
+            **record,
+            "ok": True,
+            "path": str(target.relative_to(root)).replace("\\", "/"),
+            "cached_sha256": cached_hash,
+            "cache_manifest": str(manifest_path.relative_to(root)).replace("\\", "/"),
+        })
+    return replayed
+
+
 # ---------------------------------------------------------------------------
 # Evaluation helpers
 # ---------------------------------------------------------------------------
@@ -540,25 +590,34 @@ def run(args) -> dict:
     tnames = [t["name"] for t in transforms]
 
     seeds = list(range(args.seed_start, args.seed_start + args.n_images))
-    log(f"downloading {len(seeds)} images (seeds {seeds[0]}..{seeds[-1]})")
+    acquisition_mode = "cached_local_replay" if args.offline_manifest else "live_download"
+    if args.offline_manifest:
+        log(f"replaying cached images for {len(seeds)} seeds from {args.offline_manifest}")
+    else:
+        log(f"downloading {len(seeds)} images (seeds {seeds[0]}..{seeds[-1]})")
     dl0 = time.perf_counter()
-    records = download_dataset(seeds, images_dir, 512, 2, args.jobs)
+    records = (
+        reuse_cached_dataset(seeds, images_dir, 512, Path(args.offline_manifest))
+        if args.offline_manifest
+        else download_dataset(seeds, images_dir, 512, 2, args.jobs)
+    )
     download_seconds = time.perf_counter() - dl0
     ok = [r for r in records if r["ok"]]
     failed = [r for r in records if not r["ok"]]
-    log(f"download: {len(ok)} ok, {len(failed)} failed, {download_seconds:.1f}s")
+    log(f"dataset: {len(ok)} available, {len(failed)} failed, acquisition {download_seconds:.1f}s")
 
     if len(ok) < args.min_images:
         failure = {
             "experiment": "E8",
             "status": "FAILED_DATASET",
             "reason": (
-                f"only {len(ok)} of {len(seeds)} images downloaded; "
+                f"only {len(ok)} of {len(seeds)} images available; "
                 f"minimum required is {args.min_images}"
             ),
             "dataset": {
                 "requested": len(seeds),
-                "downloaded": len(ok),
+                "available": len(ok),
+                "acquisition_mode": acquisition_mode,
                 "failed": jsonable(failed),
             },
             "generated_utc": datetime.now(timezone.utc).isoformat(),
@@ -593,7 +652,7 @@ def run(args) -> dict:
     log(f"splits: calibration={len(cal_ids)} validation={len(val_ids)} "
         f"test={len(test_ids)}")
 
-    # Original hashes for every downloaded identity.
+    # Original hashes for every available identity.
     orig_hashes = {}
     for seed in ids:
         orig_hashes[("orig", seed)] = compute_hashes(images[seed])
@@ -803,7 +862,10 @@ def run(args) -> dict:
         "dataset": {
             "source": "Picsum Photos (https://picsum.photos), photographs from Unsplash",
             "requested": len(seeds),
-            "downloaded": len(ok),
+            "downloaded": len(ok) if acquisition_mode == "live_download" else 0,
+            "reused": len(ok) if acquisition_mode == "cached_local_replay" else 0,
+            "available": len(ok),
+            "acquisition_mode": acquisition_mode,
             "failed_count": len(failed),
             "seeds": ids,
             "failed": failed,
@@ -938,13 +1000,15 @@ def build_report(result: dict) -> str:
 
     add("# E8 - Perceptual-hash robustness (pilot)")
     add("")
-    add(f"Generated (UTC): `{result['generated_utc']}`  ")
-    add(f"Command: `{result['command']}`  ")
-    add(f"Runtime: download {result['runtime_seconds']['download']:.1f}s, "
+    add(f"Generated (UTC): `{result['generated_utc']}`")
+    add("")
+    add(f"Command: `{result['command']}`")
+    add("")
+    add(f"Runtime: data acquisition {result['runtime_seconds']['download']:.1f}s, "
         f"evaluation {result['runtime_seconds']['evaluation']:.1f}s.")
     add("")
     add("> **Scope.** Pilot on "
-        f"{ds['downloaded']} public web photographs (Picsum/Unsplash). "
+        f"{ds['available']} public web photographs (Picsum/Unsplash). "
         "This is **not** Copydays, INRIA Holidays, Oxford5k, DiffusionDB or "
         "GenImage, and it does **not** evaluate PDQ, CLIP or DINOv2. Results "
         "do not establish AIGC-specific robustness. See Scope and Limitations.")
@@ -952,8 +1016,14 @@ def build_report(result: dict) -> str:
     add("## 1. Dataset")
     add("")
     add(f"- Source: {ds['source']}.")
-    add(f"- Requested {ds['requested']} seeds; downloaded **{ds['downloaded']}** "
-        f"(failed: {ds['failed_count']}).")
+    if ds["acquisition_mode"] == "cached_local_replay":
+        add(f"- Replayed **{ds['reused']}** cached images from the prior manifest; "
+            f"no network download was attempted (failed: {ds['failed_count']}).")
+        add("- Cached source images are local inputs and are not tracked in the repository; "
+            "a fresh checkout needs a local cache or network access for acquisition.")
+    else:
+        add(f"- Requested {ds['requested']} seeds; downloaded **{ds['downloaded']}** "
+            f"(failed: {ds['failed_count']}).")
     add(f"- Seeds: {ds['seeds'][0]}..{ds['seeds'][-1]} (contiguous, "
         f"n={len(ds['seeds'])}), size 512x512 RGB JPEG.")
     add(f"- Global distinct-identity pairs: {pr['global_distinct_identity_pairs']}.")
@@ -1119,7 +1189,7 @@ def build_report(result: dict) -> str:
     add("- `e8_fingerprint.json` - full configuration, counts, metrics, CIs, seeds.")
     add("- `e8_per_transform.csv` - per-method, per-transformation TPR table.")
     add("- `e8_operating_points.png` - test operating points (optional plot).")
-    add(f"- `images/` - {ds['downloaded']} downloaded originals.")
+    add(f"- `images/` - {ds['available']} normalized original images.")
     add("")
     return "\n".join(lines)
 
@@ -1136,6 +1206,8 @@ def main(argv=None) -> int:
                         help="first Picsum seed (default 1000)")
     parser.add_argument("--out", type=str, default=str(DEFAULT_OUT),
                         help="output directory (default experiments/results/e8)")
+    parser.add_argument("--offline-manifest", type=str, default=None,
+                        help="replay a cached dataset from a successful E8 manifest")
     parser.add_argument("--min-images", type=int, default=60,
                         help="abort if fewer images download (default 60)")
     parser.add_argument("--jobs", type=int, default=6,

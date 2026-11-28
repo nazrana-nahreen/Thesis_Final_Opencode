@@ -12,7 +12,7 @@ Each reference was verified by:
 | Ref | Title | Authors | Venue | Year | DOI/URL | Status |
 |---|---|---|---|---|---|---|
 | [1] | Trust-Free Blockchain Framework for AI-Generated Content Trading and Management in Metaverse | Truong, Le, Le | IEEE Access | 2024 | 10.1109/ACCESS.2024.3376509 | ✅ Verified |
-| [2] | Survey on Blockchain based Smart Contracts | Wang et al. | IEEE Access | 2023 | — | ⚠️ Generic reference; verify exact paper |
+| [2] | Survey on Blockchain-Based Smart Contracts: Technical Aspects and Future Research | Hewa, Hu, Liyanage, Kanhere, Ylianttila | IEEE Access, vol. 9, pp. 87643-87662 | 2021 | 10.1109/ACCESS.2021.3068178 | Verified (Crossref, 2026-11-27) |
 | [3] | Decentralized Creative Copyright Exchange in the Age of Generative AI | Balan, Gilbert, Collomosse | DECADE Technical Report | 2025 | decade.ac.uk | ✅ Verified (technical report) |
 | [4] | Story Protocol | — | Commercial | 2025 | storyprotocol.xyz | ✅ Verified (commercial) |
 | [5] | AuraMint | — | Commercial | 2026 | auramint.org | ✅ Verified (commercial) |
@@ -30,7 +30,7 @@ Each reference was verified by:
 | [17] | Dual-Deposit Escrow | — | ICBC | 2019 | 10.1109/BLOC.2019.8751482 | ✅ Verified |
 | [18] | FairSwap/OptiSwap Generalization | — | IJIS | 2025 | 10.1007/s10207-025-01166-1 | ✅ Verified |
 | [19] | Camenisch-Shoup | Camenisch, Shoup | CRYPTO | 2003 | — | ✅ Verified (no DOI in search) |
-| [20] | Merkle-Tree-Based Verifiable Auditing | — | arXiv | 2026 | arXiv:2610.36001 | ⚠️ Verify exact title |
+| [20] | Merkle-Tree-Based Verifiable Public Data Auditing for Cloud Object Storage Using Smart Contracts | Tadi, Rao, Gopalachari, Reddy, Bhimireddy | arXiv:2610.36001 [cs.CR] | 2026 | 10.48550/arXiv.2610.36001 | Verified (arXiv abstract page, 2026-11-27) |
 | [21] | Transparency Overlays | — | ACM CCS | 2016 | 10.1145/2976749.2978404 | ✅ Verified |
 | [22] | Cassiopeia | — | IACR ePrint | 2023 | eprint:2023/635 | ✅ Verified |
 | [23] | UMA Optimistic Oracle V3 | UMA Protocol | Docs | 2025 | docs.umaproject.org | ✅ Verified (docs) |
@@ -38,14 +38,13 @@ Each reference was verified by:
 | [25] | Bet and Attack | — | arXiv | 2020 | arXiv:2010.12280 | ✅ Verified |
 | [26] | Perceptual Hashing Survey | — | ACM TOMM | 2025 | 10.1145/3727880 | ✅ Verified |
 | [27] | Provenance Verification of AI Images | — | arXiv | 2026 | arXiv:2602.02412 | ✅ Verified |
-| [28] | Blockchain-Based Framework for Content Provenance | — | — | 2024 | — | ⚠️ Verify exact paper |
+| [28] | A Blockchain based Framework for Content Provenance and Authenticity | Bureaca, Aciobanitei | ECAI 2024, pp. 1-5 | 2024 | 10.1109/ECAI61503.2024.10607477 | Verified (Crossref, 2026-11-27) |
 
 ## Notes
 
-- References [2], [20], [28] need exact title/author verification before final submission.
-- References [19], [20], [22] lack DOIs (conference proceedings without DOI or preprint).
+- References [2], [20], [28] were verified on 2026-11-27 against Crossref and the arXiv abstract page; the entries above now match the publisher records.
+- References [19] and [22] lack publisher DOIs (CRYPTO 2003 and an IACR ePrint); [20] has an arXiv DataCite DOI.
 - Commercial references [4]-[7] are product documentation, not peer-reviewed papers.
 - Standards (ERC-2981, ERC-4907, ERC-5635, C2PA) are cited as specifications, not papers.
 - No references were fabricated. All were found via web search and cross-checked.
-- The PDF literature review uses these 28 references. Before submission, verify [2], [20], [28] against publisher records.
-EOF
+- The PDF literature review uses these 28 references. [2], [20] and [28] are verified; the remaining entries should be re-checked if the bibliography is edited.

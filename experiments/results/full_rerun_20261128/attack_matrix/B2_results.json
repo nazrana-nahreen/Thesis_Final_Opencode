@@ -1,0 +1,182 @@
+[
+  {
+    "attack_id": "AT-01",
+    "name": "Consistent garbage listing",
+    "system": "B2",
+    "test": "testB2_AT01_ConsistentGarbageAccepted()",
+    "status": "passed",
+    "outcome": "succeeds",
+    "note": "commits to garbage consistently; no preview binding"
+  },
+  {
+    "attack_id": "AT-02",
+    "name": "Inconsistent commitment",
+    "system": "B2",
+    "test": "testB2_AT02_InconsistentCommitmentRefunded()",
+    "status": "passed",
+    "outcome": "blocked",
+    "note": "one-block inconsistency proof refunds"
+  },
+  {
+    "attack_id": "AT-03",
+    "name": "Wrong key delivery",
+    "system": "B2",
+    "test": "testB2_AT03_WrongKeyRefunded()",
+    "status": "passed",
+    "outcome": "blocked",
+    "note": "wrong key exposes a mismatch; buyer refunded"
+  },
+  {
+    "attack_id": "AT-04",
+    "name": "Key before payment",
+    "system": "B2",
+    "test": "",
+    "status": "not_executed",
+    "outcome": "not_tested",
+    "note": "no matching Foundry test"
+  },
+  {
+    "attack_id": "AT-05",
+    "name": "Re-initialisation",
+    "system": "B2",
+    "test": "",
+    "status": "not_executed",
+    "outcome": "not_tested",
+    "note": "no matching Foundry test"
+  },
+  {
+    "attack_id": "AT-06",
+    "name": "Price change after deposit",
+    "system": "B2",
+    "test": "",
+    "status": "not_executed",
+    "outcome": "not_tested",
+    "note": "no matching Foundry test"
+  },
+  {
+    "attack_id": "AT-07",
+    "name": "De-listed asset trading",
+    "system": "B2",
+    "test": "",
+    "status": "not_executed",
+    "outcome": "not_tested",
+    "note": "no matching Foundry test"
+  },
+  {
+    "attack_id": "AT-08",
+    "name": "Overpayment stranding",
+    "system": "B2",
+    "test": "",
+    "status": "not_executed",
+    "outcome": "not_tested",
+    "note": "no matching Foundry test"
+  },
+  {
+    "attack_id": "AT-09",
+    "name": "Refund wiping",
+    "system": "B2",
+    "test": "",
+    "status": "not_executed",
+    "outcome": "not_tested",
+    "note": "no matching Foundry test"
+  },
+  {
+    "attack_id": "AT-10",
+    "name": ".transfer griefing",
+    "system": "B2",
+    "test": "",
+    "status": "not_executed",
+    "outcome": "not_tested",
+    "note": "no matching Foundry test"
+  },
+  {
+    "attack_id": "AT-11",
+    "name": "False integrity dispute",
+    "system": "B2",
+    "test": "testB2_AT11_FalseDisputeRejected()",
+    "status": "passed",
+    "outcome": "blocked",
+    "note": "consistent content reverts the claim"
+  },
+  {
+    "attack_id": "AT-12",
+    "name": "Fabricated chunk proof",
+    "system": "B2",
+    "test": "testB2_AT12_FabricatedProofRejected()",
+    "status": "passed",
+    "outcome": "blocked",
+    "note": "fabricated block fails the Merkle check"
+  },
+  {
+    "attack_id": "AT-13",
+    "name": "Dispute spam",
+    "system": "B2",
+    "test": "",
+    "status": "not_executed",
+    "outcome": "not_tested",
+    "note": "no matching Foundry test"
+  },
+  {
+    "attack_id": "AT-14",
+    "name": "Leak-by-dispute",
+    "system": "B2",
+    "test": "testB2_AT14_KeyPublicAfterEverySale()",
+    "status": "passed",
+    "outcome": "succeeds",
+    "note": "K is revealed publicly on every sale"
+  },
+  {
+    "attack_id": "AT-15",
+    "name": "Seller stalls after dispute",
+    "system": "B2",
+    "test": "testB2_AT15_TimeoutRevealRefunds()",
+    "status": "passed",
+    "outcome": "blocked",
+    "note": "timeoutReveal refunds"
+  },
+  {
+    "attack_id": "AT-16",
+    "name": "Buyer stalls confirmation",
+    "system": "B2",
+    "test": "testB2_AT16_TimeoutConfirmPaysSeller()",
+    "status": "passed",
+    "outcome": "blocked",
+    "note": "timeoutConfirm pays the seller"
+  },
+  {
+    "attack_id": "AT-17",
+    "name": "Timestamp manipulation",
+    "system": "B2",
+    "test": "",
+    "status": "not_executed",
+    "outcome": "not_tested",
+    "note": "no matching Foundry test"
+  },
+  {
+    "attack_id": "AT-30",
+    "name": "Reentrancy on payout",
+    "system": "B2",
+    "test": "",
+    "status": "not_executed",
+    "outcome": "not_tested",
+    "note": "no matching Foundry test"
+  },
+  {
+    "attack_id": "AT-31",
+    "name": "Late-respond time-bar",
+    "system": "B2",
+    "test": "",
+    "status": "not_executed",
+    "outcome": "not_tested",
+    "note": "no matching Foundry test"
+  },
+  {
+    "attack_id": "AT-32",
+    "name": "Mode-2 re-challenge loop",
+    "system": "B2",
+    "test": "",
+    "status": "not_executed",
+    "outcome": "not_tested",
+    "note": "no matching Foundry test"
+  }
+]

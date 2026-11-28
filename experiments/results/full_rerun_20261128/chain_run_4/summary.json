@@ -1,0 +1,30 @@
+{
+  "generatedAt": "2026-11-28T13:47:20.596Z",
+  "rpc": "http://127.0.0.1:8545",
+  "runs": 0,
+  "latencyRuns": 100,
+  "systems": {
+    "B1": {},
+    "B2": {},
+    "B3": {}
+  },
+  "cycles": {
+    "B1": {
+      "gas": null,
+      "latency_ms": null
+    },
+    "B2": {
+      "gas": null,
+      "latency_ms": null
+    },
+    "B3": {
+      "gas": null,
+      "latency_ms": null
+    }
+  },
+  "sequentialThroughput": {
+    "cycles": 100,
+    "meanCycleMs": 84.04,
+    "salesPerSecond": 11.9
+  }
+}

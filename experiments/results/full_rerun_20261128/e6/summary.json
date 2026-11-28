@@ -1,0 +1,158 @@
+{
+  "generatedAt": "2026-11-28T13:48:19.691Z",
+  "machine": "Intel64 Family 6 Model 140 Stepping 1, GenuineIntel",
+  "node": "v22.14.0",
+  "blockSize": 1024,
+  "encryption": [
+    {
+      "size": "64KB",
+      "bytes": 65536,
+      "m": 64,
+      "ciphertextBytes": 65536,
+      "encrypt_ms": {
+        "n": 10,
+        "mean": 12.681,
+        "sd": 5.197,
+        "median": 10.805,
+        "p95": 26.742,
+        "min": 9.762,
+        "max": 26.742
+      }
+    },
+    {
+      "size": "256KB",
+      "bytes": 262144,
+      "m": 256,
+      "ciphertextBytes": 262144,
+      "encrypt_ms": {
+        "n": 10,
+        "mean": 43.245,
+        "sd": 1.831,
+        "median": 43.928,
+        "p95": 45.373,
+        "min": 39.531,
+        "max": 45.373
+      }
+    },
+    {
+      "size": "1MB",
+      "bytes": 1048576,
+      "m": 1024,
+      "ciphertextBytes": 1048576,
+      "encrypt_ms": {
+        "n": 10,
+        "mean": 189.239,
+        "sd": 17.305,
+        "median": 183.584,
+        "p95": 214.789,
+        "min": 170.491,
+        "max": 214.789
+      }
+    },
+    {
+      "size": "5MB",
+      "bytes": 5242880,
+      "m": 5120,
+      "ciphertextBytes": 5242880,
+      "encrypt_ms": {
+        "n": 10,
+        "mean": 1033.216,
+        "sd": 38.164,
+        "median": 1038.272,
+        "p95": 1094.749,
+        "min": 990.279,
+        "max": 1094.749
+      }
+    },
+    {
+      "size": "10MB",
+      "bytes": 10485760,
+      "m": 10240,
+      "ciphertextBytes": 10485760,
+      "encrypt_ms": {
+        "n": 10,
+        "mean": 2008.809,
+        "sd": 67.631,
+        "median": 2007.674,
+        "p95": 2108.422,
+        "min": 1910.543,
+        "max": 2108.422
+      }
+    }
+  ],
+  "keyWrap": {
+    "bytes": 129,
+    "ms": {
+      "n": 100,
+      "mean": 33.939,
+      "sd": 7.697,
+      "median": 31.078,
+      "p95": 47.922,
+      "min": 25.851,
+      "max": 68.212
+    }
+  },
+  "onchain": {
+    "logicalBytesPerAsset": 367,
+    "withMappingSlot": 399,
+    "fields": {
+      "address": 20,
+      "commitments": 288,
+      "m": 4,
+      "blockSize": 4,
+      "price": 8,
+      "royaltyBps": 2,
+      "parentAssetId": 32,
+      "active": 1,
+      "listedAt": 8
+    }
+  },
+  "storageModel": {
+    "plaintextBytes": 5242880,
+    "b0KeyBytesPerBuyer": 128,
+    "model": [
+      {
+        "buyers": 1,
+        "b0_bytes": 5243008,
+        "b2_bytes": 5242912,
+        "b3_bytes": 5243009,
+        "b3_vs_b0": 1,
+        "b3_vs_b2": 1
+      },
+      {
+        "buyers": 10,
+        "b0_bytes": 5244160,
+        "b2_bytes": 5242912,
+        "b3_bytes": 5244170,
+        "b3_vs_b0": 1,
+        "b3_vs_b2": 1
+      },
+      {
+        "buyers": 100,
+        "b0_bytes": 5255680,
+        "b2_bytes": 5242912,
+        "b3_bytes": 5255780,
+        "b3_vs_b0": 1,
+        "b3_vs_b2": 1
+      },
+      {
+        "buyers": 1000,
+        "b0_bytes": 5370880,
+        "b2_bytes": 5242912,
+        "b3_bytes": 5371880,
+        "b3_vs_b0": 1,
+        "b3_vs_b2": 0.98
+      }
+    ]
+  },
+  "verifyOneBlockMs": {
+    "n": 100,
+    "mean": 0.179,
+    "sd": 0.096,
+    "median": 0.134,
+    "p95": 0.356,
+    "min": 0.123,
+    "max": 0.747
+  },
+  "raw": "raw_encryption.csv"
+}

@@ -1,0 +1,21 @@
+attack_id,name,system,test,status,outcome,note
+AT-01,Consistent garbage listing,B1,testB1_AT01_ConsistentGarbageAccepted(),passed,succeeds,no content verification; delivery hash is arbitrary
+AT-02,Inconsistent commitment,B1,,not_executed,not_tested,no matching Foundry test
+AT-03,Wrong key delivery,B1,testB1_AT03_NonDeliveryStrandsFunds(),passed,succeeds,no buyer-initiated refund; funds stay locked
+AT-04,Key before payment,B1,,not_executed,not_tested,no matching Foundry test
+AT-05,Re-initialisation,B1,,not_executed,not_tested,no matching Foundry test
+AT-06,Price change after deposit,B1,testB1_AT06_PriceSnapshotBlocksRaise(),passed,blocked,price is snapshotted at buy
+AT-07,De-listed asset trading,B1,,not_executed,not_tested,no matching Foundry test
+AT-08,Overpayment stranding,B1,testB1_AT08_OverpaymentStranded(),passed,succeeds,overpayment is accepted and stranded
+AT-09,Refund wiping,B1,,not_executed,not_tested,no matching Foundry test
+AT-10,.transfer griefing,B1,,not_executed,not_tested,no matching Foundry test
+AT-11,False integrity dispute,B1,,not_executed,not_tested,no matching Foundry test
+AT-12,Fabricated chunk proof,B1,,not_executed,not_tested,no matching Foundry test
+AT-13,Dispute spam,B1,,not_executed,not_tested,no matching Foundry test
+AT-14,Leak-by-dispute,B1,,not_executed,not_tested,no matching Foundry test
+AT-15,Seller stalls after dispute,B1,,not_executed,not_tested,no matching Foundry test
+AT-16,Buyer stalls confirmation,B1,,not_executed,not_tested,no matching Foundry test
+AT-17,Timestamp manipulation,B1,,not_executed,not_tested,no matching Foundry test
+AT-30,Reentrancy on payout,B1,,not_executed,not_tested,no matching Foundry test
+AT-31,Late-respond time-bar,B1,,not_executed,not_tested,no matching Foundry test
+AT-32,Mode-2 re-challenge loop,B1,,not_executed,not_tested,no matching Foundry test

@@ -2,12 +2,12 @@
   "experiment": "E8",
   "title": "Perceptual-hash robustness benchmark (pilot)",
   "status": "ok",
-  "generated_utc": "2026-11-27T15:44:22.956252+00:00",
-  "command": "python.exe experiments/e8_fingerprint.py --n-images 80 --seed 1234",
+  "generated_utc": "2026-11-28T14:15:35.940653+00:00",
+  "command": "python.exe experiments\\e8_fingerprint.py --n-images 80 --seed 1234 --offline-manifest experiments\\results\\e8\\e8_fingerprint.json --out experiments\\results\\e8",
   "runtime_seconds": {
-    "download": 14.618,
-    "evaluation": 35.338,
-    "total_before_outputs": 49.956
+    "download": 0.373,
+    "evaluation": 14.84,
+    "total_before_outputs": 15.214
   },
   "environment": {
     "python": "3.10.9",
@@ -428,7 +428,10 @@
   "dataset": {
     "source": "Picsum Photos (https://picsum.photos), photographs from Unsplash",
     "requested": 80,
-    "downloaded": 80,
+    "downloaded": 0,
+    "reused": 80,
+    "available": 80,
+    "acquisition_mode": "cached_local_replay",
     "failed_count": 0,
     "seeds": [
       1000,
@@ -531,7 +534,9 @@
         ],
         "src_format": "JPEG",
         "reencoded": false,
-        "attempts": 1
+        "attempts": 1,
+        "cached_sha256": "e659a3e519c7100c3fd7bb7928b3be6d7c2d6ed69a1959cf45a0aa756f16aa68",
+        "cache_manifest": "experiments/results/e8/e8_fingerprint.json"
       },
       {
         "seed": 1001,
@@ -545,7 +550,9 @@
         ],
         "src_format": "JPEG",
         "reencoded": false,
-        "attempts": 1
+        "attempts": 1,
+        "cached_sha256": "cf1965c3c1014f9b8495dd6e5aff616f02b1c85c79c589e0d661b0a2a1d1a956",
+        "cache_manifest": "experiments/results/e8/e8_fingerprint.json"
       },
       {
         "seed": 1002,
@@ -559,7 +566,9 @@
         ],
         "src_format": "JPEG",
         "reencoded": false,
-        "attempts": 1
+        "attempts": 1,
+        "cached_sha256": "c31b5a3f5a386f6131f7eb289e1067c266cd9946fa3e9196780d30042a691c7a",
+        "cache_manifest": "experiments/results/e8/e8_fingerprint.json"
       },
       {
         "seed": 1003,
@@ -573,7 +582,9 @@
         ],
         "src_format": "JPEG",
         "reencoded": false,
-        "attempts": 1
+        "attempts": 1,
+        "cached_sha256": "6543eb72062dbbc257168037513707260e136b12847adf6111055a2b512e0681",
+        "cache_manifest": "experiments/results/e8/e8_fingerprint.json"
       },
       {
         "seed": 1004,
@@ -587,7 +598,9 @@
         ],
         "src_format": "JPEG",
         "reencoded": false,
-        "attempts": 1
+        "attempts": 1,
+        "cached_sha256": "1a9455165a9f1dd3b4b2add7d25e01f43f1ce7e7642ed16e4fb071f5ff68d134",
+        "cache_manifest": "experiments/results/e8/e8_fingerprint.json"
       },
       {
         "seed": 1005,
@@ -601,7 +614,9 @@
         ],
         "src_format": "JPEG",
         "reencoded": false,
-        "attempts": 1
+        "attempts": 1,
+        "cached_sha256": "6cea3b88a2926d960b1895c36f75cd7f517b35efb89595f5c8769ef706f3db34",
+        "cache_manifest": "experiments/results/e8/e8_fingerprint.json"
       },
       {
         "seed": 1006,
@@ -615,7 +630,9 @@
         ],
         "src_format": "JPEG",
         "reencoded": false,
-        "attempts": 1
+        "attempts": 1,
+        "cached_sha256": "7af34b1040718f0d98678b67840f7258e773797d97b6c1e472fc69c93f1d63c7",
+        "cache_manifest": "experiments/results/e8/e8_fingerprint.json"
       },
       {
         "seed": 1007,
@@ -629,7 +646,9 @@
         ],
         "src_format": "JPEG",
         "reencoded": false,
-        "attempts": 1
+        "attempts": 1,
+        "cached_sha256": "e31b55b59706d9817968999f44e8fc8b45da91fe8a19eec8fea74e8fbf553f94",
+        "cache_manifest": "experiments/results/e8/e8_fingerprint.json"
       },
       {
         "seed": 1008,
@@ -643,7 +662,9 @@
         ],
         "src_format": "JPEG",
         "reencoded": false,
-        "attempts": 1
+        "attempts": 1,
+        "cached_sha256": "1e298e66522bc0a8cf7dadf97fe780a7efec29a498e70df752ee6599a17de173",
+        "cache_manifest": "experiments/results/e8/e8_fingerprint.json"
       },
       {
         "seed": 1009,
@@ -657,7 +678,9 @@
         ],
         "src_format": "JPEG",
         "reencoded": false,
-        "attempts": 1
+        "attempts": 1,
+        "cached_sha256": "80bc4238c5f765e96c5ec56cad2194c9ca436055f5a3e5fa44054a3482541c1a",
+        "cache_manifest": "experiments/results/e8/e8_fingerprint.json"
       },
       {
         "seed": 1010,
@@ -671,7 +694,9 @@
         ],
         "src_format": "JPEG",
         "reencoded": false,
-        "attempts": 1
+        "attempts": 1,
+        "cached_sha256": "9d94135f3258d812827c5b85566c4769218f0ab78b6bb25064ba0a29c3da0987",
+        "cache_manifest": "experiments/results/e8/e8_fingerprint.json"
       },
       {
         "seed": 1011,
@@ -685,7 +710,9 @@
         ],
         "src_format": "JPEG",
         "reencoded": false,
-        "attempts": 1
+        "attempts": 1,
+        "cached_sha256": "87d29372f4f58adaab8b148151719290890c84572dcd82c50c649d0a4bc52f41",
+        "cache_manifest": "experiments/results/e8/e8_fingerprint.json"
       },
       {
         "seed": 1012,
@@ -699,7 +726,9 @@
         ],
         "src_format": "JPEG",
         "reencoded": false,
-        "attempts": 1
+        "attempts": 1,
+        "cached_sha256": "360d2cb2d746012fd18a644ddc6ea6fb07e7ace3703190a28a7110ce1e29b550",
+        "cache_manifest": "experiments/results/e8/e8_fingerprint.json"
       },
       {
         "seed": 1013,
@@ -713,7 +742,9 @@
         ],
         "src_format": "JPEG",
         "reencoded": false,
-        "attempts": 1
+        "attempts": 1,
+        "cached_sha256": "706dbe89eecac404e140a9a212646145beec1b478949df2efe4fd2c7fc7adc77",
+        "cache_manifest": "experiments/results/e8/e8_fingerprint.json"
       },
       {
         "seed": 1014,
@@ -727,7 +758,9 @@
         ],
         "src_format": "JPEG",
         "reencoded": false,
-        "attempts": 1
+        "attempts": 1,
+        "cached_sha256": "bc34b11206063e1682ab47a40f7856ad75115c8c3d0ca5e7dc69ee6862f9abb2",
+        "cache_manifest": "experiments/results/e8/e8_fingerprint.json"
       },
       {
         "seed": 1015,
@@ -741,7 +774,9 @@
         ],
         "src_format": "JPEG",
         "reencoded": false,
-        "attempts": 1
+        "attempts": 1,
+        "cached_sha256": "b620ea9ac3012cd3917873327417b0d838f29f70a14f125b2fedd70f513b2ca9",
+        "cache_manifest": "experiments/results/e8/e8_fingerprint.json"
       },
       {
         "seed": 1016,
@@ -755,7 +790,9 @@
         ],
         "src_format": "JPEG",
         "reencoded": false,
-        "attempts": 1
+        "attempts": 1,
+        "cached_sha256": "708eae6735c9285cb62dbdb8425a3e2469c27c770520d74ea1e1f626be84b795",
+        "cache_manifest": "experiments/results/e8/e8_fingerprint.json"
       },
       {
         "seed": 1017,
@@ -769,7 +806,9 @@
         ],
         "src_format": "JPEG",
         "reencoded": false,
-        "attempts": 1
+        "attempts": 1,
+        "cached_sha256": "dc5db78cda5cabd3eddfbd1cc91ca6e60e029d40c4215634e0ad8562bc040e2c",
+        "cache_manifest": "experiments/results/e8/e8_fingerprint.json"
       },
       {
         "seed": 1018,
@@ -783,7 +822,9 @@
         ],
         "src_format": "JPEG",
         "reencoded": false,
-        "attempts": 1
+        "attempts": 1,
+        "cached_sha256": "f3d251bbbef37767f58e97300bb532e0f6006170a66b0bb81cad86d54603a643",
+        "cache_manifest": "experiments/results/e8/e8_fingerprint.json"
       },
       {
         "seed": 1019,
@@ -797,7 +838,9 @@
         ],
         "src_format": "JPEG",
         "reencoded": false,
-        "attempts": 1
+        "attempts": 1,
+        "cached_sha256": "869a593b23aae65fe27ab951fca13b0ca4db630d3dfd38033e1188e527bc69fe",
+        "cache_manifest": "experiments/results/e8/e8_fingerprint.json"
       },
       {
         "seed": 1020,
@@ -811,7 +854,9 @@
         ],
         "src_format": "JPEG",
         "reencoded": false,
-        "attempts": 1
+        "attempts": 1,
+        "cached_sha256": "0275958ef9f31bc1899d040321a7a16270454fb4143a82ab70008059276fc5c9",
+        "cache_manifest": "experiments/results/e8/e8_fingerprint.json"
       },
       {
         "seed": 1021,
@@ -825,7 +870,9 @@
         ],
         "src_format": "JPEG",
         "reencoded": false,
-        "attempts": 1
+        "attempts": 1,
+        "cached_sha256": "e69f7086c0015bbad3c33840a998f6472f30986f4f7f79a8f585bfba5d76b208",
+        "cache_manifest": "experiments/results/e8/e8_fingerprint.json"
       },
       {
         "seed": 1022,
@@ -839,7 +886,9 @@
         ],
         "src_format": "JPEG",
         "reencoded": false,
-        "attempts": 1
+        "attempts": 1,
+        "cached_sha256": "e2c5dde42d73b0c513ae5b60f7f6012b63ea7e158f4ae41f29985dd8c473bfcb",
+        "cache_manifest": "experiments/results/e8/e8_fingerprint.json"
       },
       {
         "seed": 1023,
@@ -853,7 +902,9 @@
         ],
         "src_format": "JPEG",
         "reencoded": false,
-        "attempts": 1
+        "attempts": 1,
+        "cached_sha256": "1276e5a6cb05540b48e9999edd588ac54df8d7e3eb87279882f94b831f04e3a6",
+        "cache_manifest": "experiments/results/e8/e8_fingerprint.json"
       },
       {
         "seed": 1024,
@@ -867,7 +918,9 @@
         ],
         "src_format": "JPEG",
         "reencoded": false,
-        "attempts": 1
+        "attempts": 1,
+        "cached_sha256": "9097963e8e8948643505f91791ecba4f6f9980fc3e436f7676b5071862830105",
+        "cache_manifest": "experiments/results/e8/e8_fingerprint.json"
       },
       {
         "seed": 1025,
@@ -881,7 +934,9 @@
         ],
         "src_format": "JPEG",
         "reencoded": false,
-        "attempts": 1
+        "attempts": 1,
+        "cached_sha256": "a008484caded0e7aa1164bdc37fd05387f74fb17103c04139d15c4e28dfe5edd",
+        "cache_manifest": "experiments/results/e8/e8_fingerprint.json"
       },
       {
         "seed": 1026,
@@ -895,7 +950,9 @@
         ],
         "src_format": "JPEG",
         "reencoded": false,
-        "attempts": 1
+        "attempts": 1,
+        "cached_sha256": "f94134bbd4ba61ca5a00216cf7c9a89a0decff50d3c31699632e0b46e25fd6d8",
+        "cache_manifest": "experiments/results/e8/e8_fingerprint.json"
       },
       {
         "seed": 1027,
@@ -909,7 +966,9 @@
         ],
         "src_format": "JPEG",
         "reencoded": false,
-        "attempts": 1
+        "attempts": 1,
+        "cached_sha256": "87d29372f4f58adaab8b148151719290890c84572dcd82c50c649d0a4bc52f41",
+        "cache_manifest": "experiments/results/e8/e8_fingerprint.json"
       },
       {
         "seed": 1028,
@@ -923,7 +982,9 @@
         ],
         "src_format": "JPEG",
         "reencoded": false,
-        "attempts": 1
+        "attempts": 1,
+        "cached_sha256": "de686c015df8513ec4d2ee0dd117f1ec515646a8278d126e1dd22d6c0a03420e",
+        "cache_manifest": "experiments/results/e8/e8_fingerprint.json"
       },
       {
         "seed": 1029,
@@ -937,7 +998,9 @@
         ],
         "src_format": "JPEG",
         "reencoded": false,
-        "attempts": 1
+        "attempts": 1,
+        "cached_sha256": "e55b9ce969b8074c7c958a2e68c5e71d8360d104bdec8c55bac903fc24669b17",
+        "cache_manifest": "experiments/results/e8/e8_fingerprint.json"
       },
       {
         "seed": 1030,
@@ -951,7 +1014,9 @@
         ],
         "src_format": "JPEG",
         "reencoded": false,
-        "attempts": 1
+        "attempts": 1,
+        "cached_sha256": "fed4fed97685d7bf65365e5d4eae01b48f51863f73b28327a394ee2392c0cf43",
+        "cache_manifest": "experiments/results/e8/e8_fingerprint.json"
       },
       {
         "seed": 1031,
@@ -965,7 +1030,9 @@
         ],
         "src_format": "JPEG",
         "reencoded": false,
-        "attempts": 1
+        "attempts": 1,
+        "cached_sha256": "e75c4a3286cfd5b7ddfcac4772cfd385ccf622be10ce33266e9f4d4a53ceea2d",
+        "cache_manifest": "experiments/results/e8/e8_fingerprint.json"
       },
       {
         "seed": 1032,
@@ -979,7 +1046,9 @@
         ],
         "src_format": "JPEG",
         "reencoded": false,
-        "attempts": 1
+        "attempts": 1,
+        "cached_sha256": "158c1bf4932ca0904c57113379f86bd2f8a547cd05cb6c4e75afeeb1a04d0811",
+        "cache_manifest": "experiments/results/e8/e8_fingerprint.json"
       },
       {
         "seed": 1033,
@@ -993,7 +1062,9 @@
         ],
         "src_format": "JPEG",
         "reencoded": false,
-        "attempts": 1
+        "attempts": 1,
+        "cached_sha256": "eccc47c6fa9e4338f56ee000ae838653a9b93765f5c7c35d5c321cf27c41cd0b",
+        "cache_manifest": "experiments/results/e8/e8_fingerprint.json"
       },
       {
         "seed": 1034,
@@ -1007,7 +1078,9 @@
         ],
         "src_format": "JPEG",
         "reencoded": false,
-        "attempts": 1
+        "attempts": 1,
+        "cached_sha256": "168d3fda90eb3e959a9c2d9c69edb82c411e85d9979ee332d4f7286ef069ff7e",
+        "cache_manifest": "experiments/results/e8/e8_fingerprint.json"
       },
       {
         "seed": 1035,
@@ -1021,7 +1094,9 @@
         ],
         "src_format": "JPEG",
         "reencoded": false,
-        "attempts": 1
+        "attempts": 1,
+        "cached_sha256": "dbb5c3717efac8ebbd199182d6456b947898f5993cea69769829490ae712b9f8",
+        "cache_manifest": "experiments/results/e8/e8_fingerprint.json"
       },
       {
         "seed": 1036,
@@ -1035,7 +1110,9 @@
         ],
         "src_format": "JPEG",
         "reencoded": false,
-        "attempts": 1
+        "attempts": 1,
+        "cached_sha256": "c542416f6ac93c58ff3838fb5bb376cf521e3f8df81feb994bae3d3b2d573dfe",
+        "cache_manifest": "experiments/results/e8/e8_fingerprint.json"
       },
       {
         "seed": 1037,
@@ -1049,7 +1126,9 @@
         ],
         "src_format": "JPEG",
         "reencoded": false,
-        "attempts": 1
+        "attempts": 1,
+        "cached_sha256": "14183be40b2831eaa70ee65d3576aa7fd79d71b3481ddbc824d56613f47f9a4c",
+        "cache_manifest": "experiments/results/e8/e8_fingerprint.json"
       },
       {
         "seed": 1038,
@@ -1063,7 +1142,9 @@
         ],
         "src_format": "JPEG",
         "reencoded": false,
-        "attempts": 1
+        "attempts": 1,
+        "cached_sha256": "fac73ad9b80e31b873b3116050dfc1d1888277037261c0de7a938b7750c718e9",
+        "cache_manifest": "experiments/results/e8/e8_fingerprint.json"
       },
       {
         "seed": 1039,
@@ -1077,7 +1158,9 @@
         ],
         "src_format": "JPEG",
         "reencoded": false,
-        "attempts": 1
+        "attempts": 1,
+        "cached_sha256": "edb2541c0b34d8b442a7497bea81724541b26c7b7b4606262eb55226ef561edf",
+        "cache_manifest": "experiments/results/e8/e8_fingerprint.json"
       },
       {
         "seed": 1040,
@@ -1091,7 +1174,9 @@
         ],
         "src_format": "JPEG",
         "reencoded": false,
-        "attempts": 1
+        "attempts": 1,
+        "cached_sha256": "8ffa5b3e710dea50e01a88858682929718a94c20c713d7707ab0a8154d380c35",
+        "cache_manifest": "experiments/results/e8/e8_fingerprint.json"
       },
       {
         "seed": 1041,
@@ -1105,7 +1190,9 @@
         ],
         "src_format": "JPEG",
         "reencoded": false,
-        "attempts": 1
+        "attempts": 1,
+        "cached_sha256": "d0f108cfc390b58cc891681617e9896e747d60504f289dc08c1f775533361a94",
+        "cache_manifest": "experiments/results/e8/e8_fingerprint.json"
       },
       {
         "seed": 1042,
@@ -1119,7 +1206,9 @@
         ],
         "src_format": "JPEG",
         "reencoded": false,
-        "attempts": 1
+        "attempts": 1,
+        "cached_sha256": "f23971f25f7f85d3bdaa0ccf0915e09bef3da51723962a5e7fb810bf6fda1df1",
+        "cache_manifest": "experiments/results/e8/e8_fingerprint.json"
       },
       {
         "seed": 1043,
@@ -1133,7 +1222,9 @@
         ],
         "src_format": "JPEG",
         "reencoded": false,
-        "attempts": 1
+        "attempts": 1,
+        "cached_sha256": "457ba4efdad830e3a592e3790537cf21ab19ac534522d529e67f0e778f62c209",
+        "cache_manifest": "experiments/results/e8/e8_fingerprint.json"
       },
       {
         "seed": 1044,
@@ -1147,7 +1238,9 @@
         ],
         "src_format": "JPEG",
         "reencoded": false,
-        "attempts": 1
+        "attempts": 1,
+        "cached_sha256": "43f083ec5a0e06ff54e4c136c1f1159eb059905ba4aa49a07c6673712d5b84eb",
+        "cache_manifest": "experiments/results/e8/e8_fingerprint.json"
       },
       {
         "seed": 1045,
@@ -1161,7 +1254,9 @@
         ],
         "src_format": "JPEG",
         "reencoded": false,
-        "attempts": 1
+        "attempts": 1,
+        "cached_sha256": "78299f9bc0e7788986d3287e7cfa72ca4228d84d3c4e55c5eecc2133c40b6219",
+        "cache_manifest": "experiments/results/e8/e8_fingerprint.json"
       },
       {
         "seed": 1046,
@@ -1175,7 +1270,9 @@
         ],
         "src_format": "JPEG",
         "reencoded": false,
-        "attempts": 1
+        "attempts": 1,
+        "cached_sha256": "3efda12197a35c92897c38071204ea92d89a59d6c87ac246ab7aefc26e8f47b6",
+        "cache_manifest": "experiments/results/e8/e8_fingerprint.json"
       },
       {
         "seed": 1047,
@@ -1189,7 +1286,9 @@
         ],
         "src_format": "JPEG",
         "reencoded": false,
-        "attempts": 1
+        "attempts": 1,
+        "cached_sha256": "f85c176ce7ef21e442e8d929cb66029ae487e21fa2376e17e0a26899baba1a7a",
+        "cache_manifest": "experiments/results/e8/e8_fingerprint.json"
       },
       {
         "seed": 1048,
@@ -1203,7 +1302,9 @@
         ],
         "src_format": "JPEG",
         "reencoded": false,
-        "attempts": 1
+        "attempts": 1,
+        "cached_sha256": "75733ead7733977db07ea804fa78e9baca3da012f9fdbdf8f6f9076d49ef21e8",
+        "cache_manifest": "experiments/results/e8/e8_fingerprint.json"
       },
       {
         "seed": 1049,
@@ -1217,7 +1318,9 @@
         ],
         "src_format": "JPEG",
         "reencoded": false,
-        "attempts": 1
+        "attempts": 1,
+        "cached_sha256": "eb17c5399afbaad4b34d90e54214253d3527603ffd017af8192086f43fbef752",
+        "cache_manifest": "experiments/results/e8/e8_fingerprint.json"
       },
       {
         "seed": 1050,
@@ -1231,7 +1334,9 @@
         ],
         "src_format": "JPEG",
         "reencoded": false,
-        "attempts": 1
+        "attempts": 1,
+        "cached_sha256": "d0e6f3137f2e3fe94dc8aeebf44fb3761e6eee3f191c28f0cd4a00cb5a2325cc",
+        "cache_manifest": "experiments/results/e8/e8_fingerprint.json"
       },
       {
         "seed": 1051,
@@ -1245,7 +1350,9 @@
         ],
         "src_format": "JPEG",
         "reencoded": false,
-        "attempts": 1
+        "attempts": 1,
+        "cached_sha256": "4bf5392dd71330ed630f1b3e44283c467610c514ca7827bf88d3032faafed06e",
+        "cache_manifest": "experiments/results/e8/e8_fingerprint.json"
       },
       {
         "seed": 1052,
@@ -1259,7 +1366,9 @@
         ],
         "src_format": "JPEG",
         "reencoded": false,
-        "attempts": 1
+        "attempts": 1,
+        "cached_sha256": "1e49bcaecbb95f9479a42cbf7f181aa237a4d906e4b33034f00666409cde9808",
+        "cache_manifest": "experiments/results/e8/e8_fingerprint.json"
       },
       {
         "seed": 1053,
@@ -1273,7 +1382,9 @@
         ],
         "src_format": "JPEG",
         "reencoded": false,
-        "attempts": 1
+        "attempts": 1,
+        "cached_sha256": "eb8ce299c0b1560e1ca884ea0c74e2a24c928416e7281262674bab7f41fef12b",
+        "cache_manifest": "experiments/results/e8/e8_fingerprint.json"
       },
       {
         "seed": 1054,
@@ -1287,7 +1398,9 @@
         ],
         "src_format": "JPEG",
         "reencoded": false,
-        "attempts": 1
+        "attempts": 1,
+        "cached_sha256": "a7c1920c7c2353cce2253d12dc15d3084a22e11e94bd3e2a36818c2948bac68d",
+        "cache_manifest": "experiments/results/e8/e8_fingerprint.json"
       },
       {
         "seed": 1055,
@@ -1301,7 +1414,9 @@
         ],
         "src_format": "JPEG",
         "reencoded": false,
-        "attempts": 1
+        "attempts": 1,
+        "cached_sha256": "9bc499b29f4735d4c3d130e28bc62adcd21e1b3ea16b008d83670ef732f29cb6",
+        "cache_manifest": "experiments/results/e8/e8_fingerprint.json"
       },
       {
         "seed": 1056,
@@ -1315,7 +1430,9 @@
         ],
         "src_format": "JPEG",
         "reencoded": false,
-        "attempts": 1
+        "attempts": 1,
+        "cached_sha256": "b81b3a7ace4ecc12940398adc62189e452b342271b6a3cb1afb68d33d8bdef38",
+        "cache_manifest": "experiments/results/e8/e8_fingerprint.json"
       },
       {
         "seed": 1057,
@@ -1329,7 +1446,9 @@
         ],
         "src_format": "JPEG",
         "reencoded": false,
-        "attempts": 1
+        "attempts": 1,
+        "cached_sha256": "b8915df8a31ff37284d8ccdcbe92e91af773cf11e2df7988ecff0e27238a5237",
+        "cache_manifest": "experiments/results/e8/e8_fingerprint.json"
       },
       {
         "seed": 1058,
@@ -1343,7 +1462,9 @@
         ],
         "src_format": "JPEG",
         "reencoded": false,
-        "attempts": 1
+        "attempts": 1,
+        "cached_sha256": "97079231f1d7cda5d92740e22788e31921631d01d8f1f6b5391653fcf9cc2e06",
+        "cache_manifest": "experiments/results/e8/e8_fingerprint.json"
       },
       {
         "seed": 1059,
@@ -1357,7 +1478,9 @@
         ],
         "src_format": "JPEG",
         "reencoded": false,
-        "attempts": 1
+        "attempts": 1,
+        "cached_sha256": "bd5b394f5307aee2288303016044429999aaf169d033aab6df96f3ebc0f0322f",
+        "cache_manifest": "experiments/results/e8/e8_fingerprint.json"
       },
       {
         "seed": 1060,
@@ -1371,7 +1494,9 @@
         ],
         "src_format": "JPEG",
         "reencoded": false,
-        "attempts": 1
+        "attempts": 1,
+        "cached_sha256": "65532f10df7da763563ec5d9611f851f7103cf129c4b06fb231507c4fa9bd830",
+        "cache_manifest": "experiments/results/e8/e8_fingerprint.json"
       },
       {
         "seed": 1061,
@@ -1385,7 +1510,9 @@
         ],
         "src_format": "JPEG",
         "reencoded": false,
-        "attempts": 1
+        "attempts": 1,
+        "cached_sha256": "042053cdd98c7df95deb9c28a926b36445b9e78e4072376479fc5380bf6c60e4",
+        "cache_manifest": "experiments/results/e8/e8_fingerprint.json"
       },
       {
         "seed": 1062,
@@ -1399,7 +1526,9 @@
         ],
         "src_format": "JPEG",
         "reencoded": false,
-        "attempts": 1
+        "attempts": 1,
+        "cached_sha256": "ba2105c2b2004bd6b7b035a1f3cfec8664364494e5b3b6428218549235ef3011",
+        "cache_manifest": "experiments/results/e8/e8_fingerprint.json"
       },
       {
         "seed": 1063,
@@ -1413,7 +1542,9 @@
         ],
         "src_format": "JPEG",
         "reencoded": false,
-        "attempts": 1
+        "attempts": 1,
+        "cached_sha256": "c37897948399eed90b693ee21c1e2d15be53bbeb27457da11d373bb1fd45db79",
+        "cache_manifest": "experiments/results/e8/e8_fingerprint.json"
       },
       {
         "seed": 1064,
@@ -1427,7 +1558,9 @@
         ],
         "src_format": "JPEG",
         "reencoded": false,
-        "attempts": 1
+        "attempts": 1,
+        "cached_sha256": "119467cb08e8e769c02d105d741186246588f474f9c56b9c798f1c60865011f0",
+        "cache_manifest": "experiments/results/e8/e8_fingerprint.json"
       },
       {
         "seed": 1065,
@@ -1441,7 +1574,9 @@
         ],
         "src_format": "JPEG",
         "reencoded": false,
-        "attempts": 1
+        "attempts": 1,
+        "cached_sha256": "ae4162336d128cbad5974e03d1da1e418e398f19e979d0c266a1b78e1afc3ef0",
+        "cache_manifest": "experiments/results/e8/e8_fingerprint.json"
       },
       {
         "seed": 1066,
@@ -1455,7 +1590,9 @@
         ],
         "src_format": "JPEG",
         "reencoded": false,
-        "attempts": 1
+        "attempts": 1,
+        "cached_sha256": "6afe85dc1c099d86ffbc9857eaf3ed130c14eb03926009f13e28d06ccbf92790",
+        "cache_manifest": "experiments/results/e8/e8_fingerprint.json"
       },
       {
         "seed": 1067,
@@ -1469,7 +1606,9 @@
         ],
         "src_format": "JPEG",
         "reencoded": false,
-        "attempts": 1
+        "attempts": 1,
+        "cached_sha256": "150331e928a107770b5a5aea226270d14344c330d8e293d4f5220d76b614dff6",
+        "cache_manifest": "experiments/results/e8/e8_fingerprint.json"
       },
       {
         "seed": 1068,
@@ -1483,7 +1622,9 @@
         ],
         "src_format": "JPEG",
         "reencoded": false,
-        "attempts": 1
+        "attempts": 1,
+        "cached_sha256": "fef8adc688249e50e7b0a1ecc59eaaebe7f98f8c1e3a92bfc6f8a1b9bd15fec1",
+        "cache_manifest": "experiments/results/e8/e8_fingerprint.json"
       },
       {
         "seed": 1069,
@@ -1497,7 +1638,9 @@
         ],
         "src_format": "JPEG",
         "reencoded": false,
-        "attempts": 1
+        "attempts": 1,
+        "cached_sha256": "b48fcfae7c359097c7604f4ae91479202324539d2266c427cc1d6436686db2ec",
+        "cache_manifest": "experiments/results/e8/e8_fingerprint.json"
       },
       {
         "seed": 1070,
@@ -1511,7 +1654,9 @@
         ],
         "src_format": "JPEG",
         "reencoded": false,
-        "attempts": 1
+        "attempts": 1,
+        "cached_sha256": "7252d83c034e7ef90b9f7001f28368425c0be1c3678c9a356738790af0d7ce5b",
+        "cache_manifest": "experiments/results/e8/e8_fingerprint.json"
       },
       {
         "seed": 1071,
@@ -1525,7 +1670,9 @@
         ],
         "src_format": "JPEG",
         "reencoded": false,
-        "attempts": 1
+        "attempts": 1,
+        "cached_sha256": "fd0f39d2e77fb2be495b12424d99c35ec7d44405e4019732fd6f184110682d4b",
+        "cache_manifest": "experiments/results/e8/e8_fingerprint.json"
       },
       {
         "seed": 1072,
@@ -1539,7 +1686,9 @@
         ],
         "src_format": "JPEG",
         "reencoded": false,
-        "attempts": 1
+        "attempts": 1,
+        "cached_sha256": "a70f0eb93044404bbc895dfd484e83ebc120ca6d622baf132770febd5eb31ddb",
+        "cache_manifest": "experiments/results/e8/e8_fingerprint.json"
       },
       {
         "seed": 1073,
@@ -1553,7 +1702,9 @@
         ],
         "src_format": "JPEG",
         "reencoded": false,
-        "attempts": 1
+        "attempts": 1,
+        "cached_sha256": "ec2fa8a9f04624eda63efa8285191e2a53b0d785da0f6cb682d0a79e8d7ed1b0",
+        "cache_manifest": "experiments/results/e8/e8_fingerprint.json"
       },
       {
         "seed": 1074,
@@ -1567,7 +1718,9 @@
         ],
         "src_format": "JPEG",
         "reencoded": false,
-        "attempts": 1
+        "attempts": 1,
+        "cached_sha256": "e98c104014617c2f87b385bcf77e8aeca71766c7c4e780c2d63ac27ba1f9f8d8",
+        "cache_manifest": "experiments/results/e8/e8_fingerprint.json"
       },
       {
         "seed": 1075,
@@ -1581,7 +1734,9 @@
         ],
         "src_format": "JPEG",
         "reencoded": false,
-        "attempts": 1
+        "attempts": 1,
+        "cached_sha256": "dbb5c3717efac8ebbd199182d6456b947898f5993cea69769829490ae712b9f8",
+        "cache_manifest": "experiments/results/e8/e8_fingerprint.json"
       },
       {
         "seed": 1076,
@@ -1595,7 +1750,9 @@
         ],
         "src_format": "JPEG",
         "reencoded": false,
-        "attempts": 1
+        "attempts": 1,
+        "cached_sha256": "7c6d6b36dd9ba985e9129b7658be6fa958affaf4e8596dc789ef1071cc1a5653",
+        "cache_manifest": "experiments/results/e8/e8_fingerprint.json"
       },
       {
         "seed": 1077,
@@ -1609,7 +1766,9 @@
         ],
         "src_format": "JPEG",
         "reencoded": false,
-        "attempts": 1
+        "attempts": 1,
+        "cached_sha256": "f1df23a026476629fcc52cebad69d0ffb6bc9835d1f6a696320bef526adefe30",
+        "cache_manifest": "experiments/results/e8/e8_fingerprint.json"
       },
       {
         "seed": 1078,
@@ -1623,7 +1782,9 @@
         ],
         "src_format": "JPEG",
         "reencoded": false,
-        "attempts": 1
+        "attempts": 1,
+        "cached_sha256": "a7c1920c7c2353cce2253d12dc15d3084a22e11e94bd3e2a36818c2948bac68d",
+        "cache_manifest": "experiments/results/e8/e8_fingerprint.json"
       },
       {
         "seed": 1079,
@@ -1637,7 +1798,9 @@
         ],
         "src_format": "JPEG",
         "reencoded": false,
-        "attempts": 1
+        "attempts": 1,
+        "cached_sha256": "c0d232865030460e6b48a4cffb5f0bd14f14b8f9aa480b40c3bb778d26b11113",
+        "cache_manifest": "experiments/results/e8/e8_fingerprint.json"
       }
     ]
   },

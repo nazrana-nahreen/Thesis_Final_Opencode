@@ -1,13 +1,13 @@
 # MetaTrade-R — Submission Draft: Abstract, Introduction, Related Work, Methodology
 
-> **Status note (not part of the paper).** Numbers in this draft were re-verified against the
-> repository on 2026-11-27: 72 Foundry test cases (including three stateful invariants), 14
-> backend tests, 7 watcher integration tests, and 18 executable attack scenarios (AT-01..AT-17
-> plus AT-30). B3 blocks 15, mitigates 1 (AT-13, by bond) and has 2 documented residuals (AT-01,
+> **Status note (not part of the paper).** The 2026-11-28 rerun reverified 78 Foundry test cases
+> (including three stateful invariants), 7 watcher integration tests, and 20 executable attack scenarios (AT-01..AT-17
+> plus AT-30, AT-31, AT-32). B3 blocks 17, mitigates 1 (AT-13, by bond) and has 2 documented residuals (AT-01,
 > AT-14). The self-audit of MetaTrade-R has 15 findings (0 critical, 2 high, 4 medium, 5 low, 3
 > informational); the audit of the base paper contains 44 findings (F1–F44). Gas figures are now
 > 30 repetitions per operation (10 for dispute paths) with mean, median, SD and p95; see
-> `docs/MEASURED_RESULTS.md`. Claims are deliberately restricted to what the artefacts support:
+> `docs/MEASURED_RESULTS.md`. The 14 backend passes remain from the prior run because Kubo was
+> unavailable for this rerun. Claims are deliberately restricted to what the artefacts support:
 > no formal verification, no AEAD claim, no "trust-free" claim, no storage-saving claim.
 
 ---
@@ -38,10 +38,12 @@ dispute without an arbitrator. We separate cryptographic integrity, which is det
 on-chain, from semantic correctness, which remains probabilistic and economic, and derive an
 incentive-compatibility condition that links the seller bond to the fingerprint detection
 probability. The prototype comprises five Solidity contracts, a 16-endpoint Fastify backend with
-IPFS storage, and a TypeScript cryptographic reference implementation. We report 93 passing
-tests (72 Foundry, 14 backend, 7 watcher), 15 of 18 attack scenarios blocked (one further
-mitigated by a bond, two documented residuals), 456,691 gas for a per-sale cycle (buy, deliver,
-confirm) and 241,278 gas for a Mode-1 integrity dispute, measured over 30 repetitions on a
+IPFS storage, and a TypeScript cryptographic reference implementation. The recorded evaluation
+suite contains 99 passing test results (78 Foundry, 14 backend, 7 watcher); the latest rerun
+reverified 85, while 14 backend results remain from the prior run because Kubo was unavailable.
+We report 17 of 20 attack scenarios blocked (one further mitigated by a bond, two documented
+residuals), 455,384 gas for a per-sale cycle (buy, deliver,
+confirm) and 243,048 gas for a Mode-1 integrity dispute, measured over 30 repetitions on a
 local Anvil chain. Confidentiality holds on the honest path only, because a dispute reveals the
 content key; HMAC-CTR is a stream cipher, not an authenticated-encryption scheme; and the system
 relies on twelve explicitly enumerated trust assumptions. It is therefore not trust-free, and we
@@ -344,7 +346,7 @@ phases, and each phase produces an artefact that the next phase consumes:
    meaningful.
 
 The evaluation is intentionally adversarial: the attack harness is written before the results
-are interpreted, and two attacks are expected to succeed. Reporting 15 of 18 blocked, one
+are interpreted, and two attacks are expected to succeed. Reporting 17 of 20 blocked, one
 mitigated and two residual is more informative than claiming immunity.
 
 ### B. System Model
@@ -569,11 +571,11 @@ the number of sampled blocks when sampling is used.
 | Delivery | `O(1)` on-chain | wrapped key is bounded at 1024 bytes |
 | Mode 1 dispute | `O(log m + β/32)` | two Merkle paths plus one block recomputation |
 | Confirmation | `O(1)` on-chain | local verification is off-chain |
-| Per-sale storage | `O(1)` | one wrapped key (128 bytes measured), not a re-encryption |
+| Per-sale storage | `O(1)` | one wrapped key (129 bytes measured), not a re-encryption |
 
 The ciphertext is stored once on IPFS in B0, B2 and B3. The published Ethereum B0
 stores one key string per buyer (`customerAddrToData[buyer].encryptedSymmetricKey`),
-and B3 stores one 128-byte wrapped key per sale. The storage model is therefore
+and B3 stores one 129-byte wrapped key per sale. The storage model is therefore
 near parity between B0 and B3; we do not claim a storage reduction. What B3 adds is
 buyer-side verification, a dispute procedure and royalty accounting, at roughly 2.1x
 the per-sale gas (Section K). An earlier draft's `O(n*L)` comparison assumed B0
@@ -607,24 +609,25 @@ Each research question maps to a measurement:
 | Question | Metric | Procedure |
 |---|---|---|
 | RQ1 | Enforced vs claimed properties | Scripted audit against published code; finding table with evidence |
-| RQ2 | Dispute soundness and completeness | Unit and adversarial tests; 18 executable scenarios |
+| RQ2 | Dispute soundness and completeness | Unit and adversarial tests; 20 executable scenarios |
 | RQ3 | Gas, latency, storage, bandwidth | 30 repetitions on local Anvil; 100 sequential cycles; fixed 256-byte block |
 | RQ4 | Deterrence condition | Analytic derivation plus parameter sweep over `P_d` and `p` |
 | RQ5 | Similarity robustness | 80-image perceptual-hash pilot under 28 transforms |
 
-Functional correctness is established with 72 Foundry test cases, including three stateful
+The latest rerun passed 78 Foundry test cases, including three stateful
 invariants (funds conservation, single-state consistency, terminal-state absorption) run for 256
-runs at depth 256, plus 14 backend integration tests and 7 watcher integration tests against a
-real local chain. Cryptographic correctness is established with published vectors. Adversarial
-behaviour is evaluated with 18 scenarios: 15 are blocked, one is mitigated by the buyer bond
+runs at depth 256, and 7 watcher integration tests against a real local chain. Fourteen backend
+integration passes are from the prior run and were not reverified because Kubo was unavailable.
+Cryptographic correctness is established with published vectors. Adversarial
+behaviour is evaluated with 20 scenarios: 17 are blocked, one is mitigated by the buyer bond
 (dispute spam), and two are reported as residual risks (semantic garbage that is internally
 consistent, and key disclosure through dispute). AT-18..AT-29 are not settlement-contract tests
 and are not counted.
 
 Gas is measured over 30 repetitions per operation (10 for the dispute paths) on a local Anvil
 chain with `optimizer_runs = 200` and `via_ir = true`. A per-sale cycle (buy, deliver, confirm)
-costs 456,691 gas on average, versus 217,860 for B1 and 220,846 for B2; listing costs 181,647.
-A Mode-1 integrity dispute costs 241,278 gas, Mode 2 costs 33,160, and a response costs 158,443.
+costs 455,384 gas on average, versus 217,860 for B1 and 220,845 for B2; listing costs 181,646.
+A Mode-1 integrity dispute costs 243,048 gas, Mode 2 costs 55,321, and a response costs 141,636.
 The SDs and p95 are in `docs/MEASURED_RESULTS.md`. The earlier single-run figures (448,119 for a
 cycle, 324,580 for a dispute) are within the same order but are superseded. The dispute cost is
 higher than a hash comparison because it includes two Merkle verifications and one keystream

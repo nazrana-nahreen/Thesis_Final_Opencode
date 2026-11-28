@@ -5,6 +5,9 @@ broadcast/
 *.gas-snapshot
 lib/
 
+# Local configuration (contains a private key; use .env.example)
+.env
+
 # Node
 node_modules/
 dist/
@@ -20,6 +23,8 @@ Thumbs.db
 
 # Experiment artefacts that are reproducible or large
 experiments/results/e8/images/
+experiments/results/full_rerun_*/e8/images/
+experiments/results/full_rerun_*/prior_outputs/
 experiments/results/e8_dryrun/
 experiments/results/_*.json
 experiments/results/_*.txt

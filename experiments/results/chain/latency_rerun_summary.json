@@ -1,0 +1,33 @@
+﻿{
+    "generatedAt":  "2026-11-28T13:52:11.9698664Z",
+    "cyclesPerRun":  100,
+    "runs":  [
+                 {
+                     "run":  1,
+                     "meanCycleMs":  39.96,
+                     "salesPerSecond":  25.03,
+                     "summaryPath":  "chain_run_1\\summary.json"
+                 },
+                 {
+                     "run":  2,
+                     "meanCycleMs":  51.49,
+                     "salesPerSecond":  19.42,
+                     "summaryPath":  "chain_run_2\\summary.json"
+                 },
+                 {
+                     "run":  3,
+                     "meanCycleMs":  71.2,
+                     "salesPerSecond":  14.04,
+                     "summaryPath":  "chain_run_3\\summary.json"
+                 },
+                 {
+                     "run":  4,
+                     "meanCycleMs":  84.04,
+                     "salesPerSecond":  11.9,
+                     "summaryPath":  "chain_run_4\\summary.json"
+                 }
+             ],
+    "medianRunMeanCycleMs":  61.345,
+    "medianRunThroughputSalesPerSecond":  16.73,
+    "source":  "experiments/results/full_rerun_20261128/chain_run_1..4"
+}

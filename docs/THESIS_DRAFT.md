@@ -5,7 +5,7 @@
 Candidate: [name]  
 Supervisor: [name]  
 Department: [department]  
-Date: 27 November 2026
+Date: 28 November 2026
 
 > **Evidence status (not part of the thesis).** This draft distinguishes four evidence levels:
 > *measured on this build*, *executed test*, *analytical model*, and *not evaluated*. Every measured
@@ -18,48 +18,42 @@ Date: 27 November 2026
 
 ## Abstract
 
-Blockchain marketplaces for AI-generated content (AIGC) promise to remove platform intermediaries,
-but they inherit the classical fair-exchange problem: a buyer must pay before it can inspect the
-goods, and a seller must reveal the goods before it is paid. This thesis reports a reproducible,
-code-level audit of MetaTrade (IEEE Access, 2024) and a repaired protocol, MetaTrade-R.
+Blockchain marketplaces for AI-generated content (AIGC) inherit a fair-exchange problem: payment
+and digital content must be exchanged between parties who do not trust one another, while a smart
+contract cannot directly inspect the content's meaning. This thesis audits MetaTrade (IEEE Access,
+2024) and designs, implements, and evaluates MetaTrade-R, a prototype intended to bind settlement
+to content committed before a sale.
 
-The audit records 44 catalogue entries (F1–F44) across the paper, its algorithms, and its published
-Ethereum and Hyperledger Fabric implementations. The central defect is that MetaTrade's settlement
-check compares a buyer-computed hash of the seller-supplied ciphertext with a hash that the seller
-itself published over the same ciphertext. The check is self-consistent by construction and does not
-bind payment to the advertised asset: a seller can list arbitrary bytes, publish their hash, and be
-paid. The audit also documents a pre-payment key leak in the Fabric flow, unlimited licence minting,
-re-callable contract initialisation, de-listing that has no effect on trading, unimplemented
-plagiarism and rating components, and gas under-reporting by a factor of 2.1. A separate
-severity-ranked self-audit of the repaired system records 15 findings: 0 critical, 2 high, 4 medium,
-5 low, and 3 informational. The two high-severity findings are accepted design limits, not
-implementation accidents.
+The code-level audit catalogues 44 paper-to-artifact findings across MetaTrade's algorithms and
+published Ethereum and Hyperledger Fabric implementations. It identifies a central settlement flaw:
+the contract compares values derived from seller-supplied ciphertext and a seller-declared hash,
+establishing self-consistency rather than binding payment to the advertised asset. Other findings
+include a pre-settlement key disclosure in the Fabric flow, unimplemented plagiarism and rating
+features, and discrepancies between the paper and code. A separate self-audit records 15 findings
+in MetaTrade-R, including accepted design limitations.
 
-MetaTrade-R adapts a FairSwap-style exchange construction with per-buyer ECIES key wrapping.
-Before listing, the seller commits to a plaintext hash, a ciphertext hash, plaintext and ciphertext
-Merkle roots, and a key commitment. Payment is escrowed against those commitments. If the delivered
-content is inconsistent with the committed plaintext, the buyer submits an on-chain proof and the
-contract recomputes one HMAC-CTR keystream block to decide the dispute without a trusted
-arbitrator. The design separates cryptographic integrity, which is deterministic and on-chain, from
-semantic correctness, which remains probabilistic and economic, and derives an
-incentive-compatibility condition that links the seller bond to the fingerprint detection
-probability.
+MetaTrade-R adapts a FairSwap-style construction. The seller commits to plaintext and ciphertext
+hashes, their Merkle roots, and a key commitment before listing. A buyer can challenge an
+inconsistent block with an on-chain proof; the contract recomputes the relevant HMAC-CTR
+keystream block. This provides deterministic integrity checking of committed bytes, not semantic
+verification of the advertised asset. The thesis also derives a bond condition parameterised by
+the probability that a semantic substitution is detected.
 
-The prototype comprises five Solidity contracts, a 16-endpoint Fastify backend with IPFS storage,
-a TypeScript cryptographic reference, a CLI, and an event watcher, plus two deliberately weak
-baselines. We report 99 passing tests (78 Foundry, 14 backend, 7 watcher), 17 of 20 attack scenarios
-blocked, one economically mitigated, and two documented residual risks, 455,384 gas for a per-sale
-cycle (buy, deliver, confirm), and 243,048 gas for a Mode-1 integrity dispute, measured over 30
-repetitions on a local Anvil chain. The honest-path throughput is 7.20 sales/s (median across three
-100-cycle idle-host runs; local, single host, machine-dependent).
+The prototype includes five Solidity contracts, a Fastify API, IPFS integration, a TypeScript
+cryptographic reference, a CLI, a watcher, and minimal comparison baselines. Recorded evaluation
+The evaluation record reports 99 passing test results (85 reverified in the latest rerun; 14
+backend passes remain from the prior run), 17 of 20 executable attack scenarios blocked, one
+mitigated, and two residual. The mean per-sale cycle costs 455,384 gas, and a Mode-1 dispute costs 243,048 gas
+(10-run mean). Across four local 100-cycle runs, median throughput is 16.73 sales/s (median run
+mean cycle time: 61.35 ms). An 80-image,
+non-AIGC pilot of classical perceptual hashes achieves 76.8% ensemble TPR at 1.01% test FPR
+overall, but 0% under ±15-degree rotation and 9.4% under horizontal flip.
 
-The limits are stated plainly. Confidentiality holds on the honest path only, because a dispute
-reveals the content key. HMAC-CTR is a stream cipher, not an authenticated-encryption scheme, and
-integrity comes from hash commitments and Merkle proofs. The system relies on twelve enumerated
-trust assumptions, so it is not trust-free. The fingerprint study is an 80-image pilot with
-classical hashes; it does not establish AIGC robustness. The thesis is therefore a systems and
-empirical security contribution, not a claim of a new cryptographic primitive or a production
-marketplace.
+These results do not establish AIGC originality, production security, or trust-free operation.
+Disputes reveal the content key; HMAC-CTR is not authenticated encryption; parent-authorised
+royalty rates are not enforced; and the fingerprint pilot does not establish AIGC robustness.
+The contribution is an empirical audit and evaluated systems prototype, not a new cryptographic
+primitive or a production marketplace.
 
 **Keywords:** AIGC trading, blockchain, content binding, fair exchange, smart contracts, dispute
 resolution, Merkle trees, HMAC-CTR, IPFS, perceptual hashing.
@@ -89,28 +83,25 @@ Appendix E. Glossary
 
 ## 1.1 AIGC as an economic good
 
-Generative models have turned images, text, audio, video, and 3D assets into goods that can be
-produced at near-zero marginal cost. This changes the economics of digital content in two ways.
-First, reproduction is effectively free, so exclusivity must be created contractually rather than
-technically. Second, authorship and provenance are hard to establish, because a generated asset
-carries no intrinsic proof of who created it or which model produced it. Creators therefore need a
-way to license AIGC that is enforceable, auditable, and does not depend on a platform that can
-change its terms or disappear.
+Generative systems produce images, text, audio, video, and three-dimensional assets that can be
+copied and redistributed at low marginal cost. This creates a licensing challenge: digital
+exclusivity is difficult to enforce through the file itself, while authorship and provenance do
+not follow automatically from the content. A marketplace must therefore communicate the offered
+asset and licence terms, transfer payment, and deliver the corresponding digital goods.
 
-Centralised stock marketplaces address distribution but charge substantial commissions, retain
-custody of both payment and content, and act as a single point of failure. Blockchain-based
-marketplaces are an attractive alternative: ownership and licence terms can be represented by
-tokens, payment can be held in escrow by a contract, and the settlement history is publicly
-auditable. The remaining difficulty is not storage or payment, but *exchange*: how can two
-mutually distrusting parties swap money and digital content such that neither can cheat?
+Blockchain systems can represent listings and licence records, hold payment in escrow, and expose
+settlement state for public inspection. They do not, however, make the exchange fair by themselves.
+The central problem is *fair exchange*: how can mutually distrustful parties exchange payment and
+content so that neither party can benefit by withholding, substituting, or misrepresenting what it
+owes?
 
 ## 1.2 The fair-exchange problem
 
-Digital goods can be copied, so the natural protocol is "pay, then receive". A buyer will not pay
-first, because the seller may deliver nothing. A seller will not deliver first, because the buyer
-may refuse to pay. Escrow removes the counterparty risk for payment but not for content: the
-contract can hold money, yet it cannot read the file, so it cannot tell whether the file matches
-what was advertised.
+Digital goods can be copied, so a simple exchange creates asymmetric risk. If the buyer pays first,
+the seller may fail to deliver; if the seller delivers first, the buyer may refuse payment.
+Escrow reduces payment risk but does not solve content verification: a contract can hold funds and
+check cryptographic values, but it cannot directly determine whether a file has the advertised
+meaning, quality, or provenance.
 
 The fair-exchange literature offers several answers. FairSwap [14] encrypts a file with a stream
 cipher whose keystream is derived from a public PRF, commits to the ciphertext with a Merkle tree,
@@ -127,12 +118,12 @@ the asset, stores the ciphertext off-chain, and publishes hashes on-chain. After
 delivers the content key wrapped to the buyer's public key. The contract checks that a
 buyer-computed hash of the ciphertext equals the hash the seller declared.
 
-This check cannot work as a content-binding mechanism. Both sides of the comparison are derived
-from the same seller-supplied object. If the seller uploads random bytes, computes their hash, and
-publishes that hash, the two values agree and the payment is released. The check proves internal
-consistency, not correspondence with the advertised asset. In the language of the fair-exchange
-literature, MetaTrade verifies that the seller is consistent with itself, while the security goal
-requires that the seller be bound to a commitment made *before* the sale.
+This check is insufficient as a content-binding mechanism. Both sides of the comparison are
+derived from the seller-supplied ciphertext and seller-declared value. A seller can therefore
+publish arbitrary bytes and their matching hash; the check can pass without establishing that the
+bytes correspond to the advertised asset. It proves internal consistency, not correspondence to a
+pre-sale commitment. The security objective is to bind settlement to content commitments fixed
+before the buyer pays.
 
 The distinction is not cosmetic. It separates two properties that the literature frequently
 conflates:
@@ -158,8 +149,9 @@ The work is organised around five questions:
 - **RQ3.** What are the gas, latency, storage, and bandwidth costs of that binding?
 - **RQ4.** Under what bond and detection-probability conditions is honest participation
   economically rational?
-- **RQ5.** How robust is perceptual-hash similarity detection under content-preserving and
-  adversarial transformations?
+- **RQ5.** What performance do classical perceptual hashes achieve in the evaluated image
+  transformation pilot, and what do the results imply about their use for AIGC originality
+  detection?
 
 The corresponding objectives are: (i) conduct a reproducible audit of the published code; (ii)
 design and implement a content-binding settlement protocol; (iii) separate integrity from semantic
@@ -175,14 +167,14 @@ guarantees; and (v) connect bond sizing to detection probability.
    FairSwap construction with per-buyer ECIES key wrapping. Payment is bound to commitments made
    before the sale, and confidentiality is preserved on the honest path.
 3. **Integrity/semantic separation (C3).** A two-mode dispute design: deterministic on-chain
-   recomputation for integrity, and a bonded, reveal-based procedure for non-delivery, with
-   semantic correctness left to a separate, explicitly probabilistic mechanism.
+   recomputation for integrity and a reveal-based procedure for non-delivery, while explicitly
+   keeping semantic correctness outside the protocol's cryptographic guarantees.
 4. **Bond-sizing model (C4).** An explicit incentive-compatibility condition relating the seller
    bond to the probability that a semantic substitution is detected.
 5. **Measured costs and negative results (C5).** Thirty-repetition gas measurements, a local
    latency/throughput measurement, a storage model that corrects an earlier overclaim, and a
    perceptual-hash pilot that reports rotation and flip failures rather than hiding them.
-6. **Executable evidence (C6).** Baselines B1/B2, an 18-scenario attack matrix driven by the real
+6. **Executable evidence (C6).** Baselines B1/B2, a 20-scenario attack matrix driven by the real
    Foundry tests, three stateful invariants, and watcher integration tests against a real chain.
 
 We do not claim a new fair-exchange protocol, a new cryptographic primitive, a new perceptual hash,
@@ -200,6 +192,8 @@ not a production deployment. In particular:
   commitments and Merkle proofs.
 - Semantic correctness is not enforced cryptographically. Perceptual hashing is a similarity
   signal, not proof of originality or plagiarism.
+- Royalty credit funding is implemented and tested. The prototype does not yet enforce
+  parent-authorised royalty rates: it uses the derivative child's stored `royaltyBps` value.
 - The system relies on twelve enumerated trust assumptions (TA1–TA12), including ledger finality,
   correct SHA-256 evaluation, IPFS availability during the delivery window, and wallet-key custody.
 - Gas figures are 30-repetition local-chain measurements (10 for dispute paths), reported with
@@ -320,8 +314,10 @@ Perceptual hashing maps an image to a short fingerprint that is intended to be s
 content-preserving transformations. pHash, dHash, aHash, and wHash are classical 64-bit
 constructions. A survey of perceptual hashing [26] documents their fragility under rotation,
 cropping, mirroring, and adversarial perturbation. The thesis uses perceptual hashing only as a
-similarity signal for estimating the detection probability `P_d` in the bond model. It is not part
-of the on-chain integrity guarantee, and it is not proof of plagiarism.
+measured similarity signal for estimating the detection probability `P_d` in the bond model. It is
+not part of the on-chain integrity guarantee, and it is not evidence of authenticity, authorship,
+or originality. In particular, a hash miss does not prove the absence of plagiarism, while a hash
+match does not prove that a seller committed the advertised AIGC asset.
 
 ## 2.6 MetaTrade in detail
 
@@ -788,25 +784,29 @@ number of sampled blocks when sampling is used.
 | Delivery | `O(1)` on-chain | wrapped key is bounded at 1024 bytes |
 | Mode 1 dispute | `O(log m + β/32)` | two Merkle paths plus one block recomputation |
 | Confirmation | `O(1)` on-chain | local verification is off-chain |
-| Per-sale storage | `O(1)` | one wrapped key (128 bytes measured), not a re-encryption |
+| Per-sale storage | `O(1)` | one wrapped key (129 bytes measured), not a re-encryption |
 
 The ciphertext is stored once on IPFS in B0, B2, and B3. The published Ethereum B0 stores one key
-string per buyer (`customerAddrToData[buyer].encryptedSymmetricKey`), and B3 stores one 128-byte
+string per buyer (`customerAddrToData[buyer].encryptedSymmetricKey`), and B3 stores one 129-byte
 wrapped key per sale. The storage model is therefore near parity between B0 and B3; this thesis
 does not claim a storage reduction. What B3 adds is buyer-side verification, a dispute procedure,
 and royalty accounting, at roughly 2.1 times the per-sale gas.
 
 ## 4.10 What is deliberately not solved
 
-Four problems are outside the cryptographic guarantee and are stated as such:
+Five limitations remain outside or alongside the cryptographic guarantee and are stated as such:
 
 1. **Semantic correctness.** A seller can commit consistently to garbage. The preview, fingerprint,
    bond, and reputation are the defences; they are probabilistic and economic.
 2. **Dispute-path confidentiality.** A dispute reveals `K`. Per-chunk keys would limit the leak to
    one chunk but would not eliminate it.
-3. **IPFS availability.** The design assumes the ciphertext is retrievable during the delivery
+3. **Parent royalty authority.** The prototype fixes the royalty-funding defect and can transfer
+   credited ETH to the registered parent, but the child listing still supplies `royaltyBps`; the
+   parent has no on-chain mechanism that prevents a child from selecting a lower rate or a
+   discrepancy with the parent's authorised terms.
+4. **IPFS availability.** The design assumes the ciphertext is retrievable during the delivery
    window. A pinning bond or erasure coding would be needed for a production guarantee.
-4. **Licence semantics and privacy.** The prototype mints an ERC-1155 licence and splits a royalty;
+5. **Licence semantics and privacy.** The prototype mints an ERC-1155 licence and splits a royalty;
    it does not enforce expiry, scope, revocation, or privacy of purchase history.
 
 ---
@@ -975,45 +975,96 @@ The following remain visible in the code and are treated as limitations, not hid
 - Timeouts are conditional liveness: they work only if someone submits the transaction (mitigated by the automated watcher daemon).
 - The buyer bond is forfeited on a rejected integrity claim, but the licence is still minted to the buyer in the consistent case. The penalty is anti-spam, not a correctness remedy.
 - Confidentiality holds on the honest path only: initiating an on-chain dispute requires publishing the content key `K`, making content publicly accessible.
+- Semantic integrity does not establish semantic correctness: a consistently committed garbage or misrepresented asset remains outside the on-chain integrity proof.
+- Royalty payment funding is implemented and tested, but parent-authorised royalty-rate enforcement remains unresolved: a child can currently store and use its own `royaltyBps` value rather than a parent-validated rate.
 
 ---
 
 # Chapter 6 — Evaluation
 
-## 6.1 Method and environment
+## 6.1 Methodology and environment
 
-All measurements were taken on the build recorded in `docs/MEASURED_RESULTS.md`:
+### Research design and systems
 
-- Windows 11, Intel i9 laptop, 16 GB RAM;
-- Node.js 22.14.0, Python 3.10.9, Foundry/Anvil 1.10.0, Kubo 0.32.1;
-- Solidity 0.8.31, optimizer 200 runs, via-IR, Osaka EVM;
-- local Anvil, chain ID 31337, fresh state per experiment.
+This work uses a software-artifact audit and empirical evaluation. It first compares MetaTrade's
+published claims with its paper, algorithms, and available Ethereum and Fabric artifacts, recording
+code-level evidence in the 44-item audit. It then evaluates four systems with different evidential
+roles: B0 is a partial reconstruction of MetaTrade's published Ethereum path; B1 is a minimal
+naive-escrow baseline; B2 is a limited FairSwap-style baseline; and B3 is the implemented
+MetaTrade-R prototype. B1 and B2 are deliberately narrow comparison systems, not full production
+implementations. The Fabric path is audited but not reconstructed because the published artifact
+does not support a reproducible end-to-end evaluation.
 
-The commands are listed in Appendix B. Gas and latency come from
-`experiments/run_chain_experiments.mjs`; compute and storage from
-`experiments/e6_storage_compute.mjs`; economics from `experiments/e7_economics.py`; fingerprints
-from `experiments/e8_fingerprint.py`. The attack matrix is regenerated by
-`harness/attack_harness.py`, which runs the real Foundry tests.
+The evaluation maps to the research questions through E1–E8: E1 audits B0; E2 checks functional
+correctness; E3 exercises the attack matrix; E4 measures transaction gas; E5 measures sequential
+local latency; E6 measures off-chain compute and models storage; E7 analyses bond incentives; and
+E8 evaluates classical perceptual-hash similarity under image transformations.
 
-The evaluation is intentionally adversarial: the attack matrix is written before the results are
-interpreted, and two attacks are expected to succeed. Reporting 17 of 20 blocked, one mitigated,
-and two residual is more informative than claiming immunity.
+### Correctness and adversarial evaluation
+
+Correctness is tested with cryptographic known-answer vectors, end-to-end contract tests,
+adversarial tests, and stateful invariants. The recorded test suites contain 78 Foundry tests,
+14 backend integration tests, and 7 watcher integration tests. The invariant suite executes
+256 campaigns at depth 256 (65,536 handler calls). These tests establish behaviour only for the
+covered inputs and state transitions; they are not a formal proof.
+
+The executable attack matrix contains 20 scenarios supported by matching tests. Each is classified
+as blocked, mitigated, or residual based on the observed test outcome: 17 are blocked, one is
+mitigated by making dispute spam costly, and two remain residual. These counts describe the
+implemented test scenarios, not a statistically sampled real-world attack-success rate. Other
+documented scenarios that lack executable tests are not included as measured attacks.
+
+### Cost, incentives, and fingerprint measurements
+
+Gas is measured on local Anvil from fresh sale state. The chain experiment uses 30 repetitions for
+ordinary operations and 10 for dispute operations; B3 delivery uses a 100-byte wrapped key.
+The reported per-sale cycle sums `buy`, `deliver`, and `confirm`, excluding the one-time listing
+transaction. Sequential latency is measured separately in four runs of 100 cycles, with a receipt
+awaited for each transaction. E6 measures encryption and verification for files from 64 KiB to
+10 MiB and computes an explicit storage model; the storage comparison is not a measurement of
+mainnet storage cost. E7 is a closed-form, risk-neutral incentive model with a parameter sweep,
+not observed market behaviour or a chain experiment.
+
+For E8, the pilot reuses 80 public 512×512 Picsum photographs from a validated prior-run cache,
+split by image identity into
+calibration, validation, and test groups. It applies 28 transformations, evaluates 896 positive
+and 494 negative test pairs, selects thresholds on validation at the false-positive rate closest
+to 1%, and reports test TPR, FPR, EER, AUC, and per-transformation performance. This is a
+classical-hash pilot on non-AIGC photographs; it cannot establish originality detection or
+robustness on generated content.
+
+### Environment and reproducibility
+
+The recorded environment is Windows 11 on an Intel i9 laptop with 16 GB RAM; Node.js 22.14.0,
+Python 3.10.9, Foundry/Anvil 1.10.0, and Solidity 0.8.31 (200 optimizer runs, via-IR, Osaka EVM).
+The prior backend run used Kubo 0.32.1; Kubo was unavailable for this rerun. Experiments use local
+Anvil, chain ID 31337, with fresh contract deployments where applicable.
+Exact commands and source artifacts are listed in Appendix B and `docs/MEASURED_RESULTS.md`.
+The attack harness invokes the Foundry tests; scripts for chain experiments, compute/storage,
+economics, and fingerprints generate the corresponding result artifacts.
+
+The design intentionally reports limitations alongside positive results. The local chain,
+single-host latency, minimal baselines, non-AIGC image sample, and author-developed test suite
+limit generalisation. No test count, attack outcome, or local measurement is treated as proof of
+mainnet security or production performance.
 
 ## 6.2 E2 — correctness
 
 **Table 6.1. Test results.**
 
-| Suite | Tests | Result |
+| Suite | Tests | Result in this rerun |
 |---|---:|---|
 | Foundry | 78 | 78 pass |
-| Backend integration | 14 | 14 pass |
+| Backend integration | 14 | Not rerun: Kubo was unavailable; prior recorded run passed |
 | Watcher integration | 7 | 7 pass |
-| **Total** | **99** | **99 pass** |
+| **Total** | **99 recorded** | **85 pass in this rerun; 14 prior passes not reverified** |
 
 The Foundry suite includes three stateful invariants over 256 campaigns at depth 256, the two
 baseline contracts, and the cryptographic vectors. The backend suite exercises the HTTP surface and
-an IPFS round-trip. The watcher suite deploys fresh contracts on a dedicated Anvil instance and
-advances time, so it tests real submission and state transitions rather than mocks.
+an IPFS round-trip; its 14 passing results are from the earlier recorded run, not this rerun, because
+Kubo was not installed and the official release endpoint timed out. The watcher suite deploys fresh
+contracts on a dedicated Anvil instance and advances time, so it tests real submission and state
+transitions rather than mocks.
 
 Correctness evidence is not the same as a security proof. The tests show that the implemented paths
 behave as specified on the cases they cover. They do not show that the specification is complete,
@@ -1034,7 +1085,7 @@ defence; for B1/B2, a passing test asserts the attack.
 | Succeeds (residual) | 2 | AT-01 (consistent garbage), AT-14 (key public after dispute) |
 
 B1 (naive escrow): three tested attacks succeed (AT-01, AT-03, AT-08), one is blocked (AT-06), and
-the other 14 are not implemented in B1 and are not tested. B2 (FairSwapLite): two succeed (AT-01,
+the other 16 are not implemented in B1 and are not tested. B2 (FairSwapLite): two succeed (AT-01,
 AT-14), six are blocked (AT-02, 03, 11, 12, 15, 16), and the rest are not tested. The asymmetry is
 reported rather than smoothed over: B1 and B2 are minimal baselines, not full systems.
 
@@ -1046,6 +1097,9 @@ The two residual attacks are the honest core of the result. AT-01 is the semanti
 commit consistently to garbage, and no hash-based check can detect it. AT-14 is the dispute-path
 key leak: a dispute publishes `K`, so confidentiality is lost. AT-13 is mitigated rather than
 blocked: the buyer bond makes spam expensive, but a determined buyer can still impose costs.
+These attack results do not imply a missing royalty fix: the royalty-funding defect was fixed
+during implementation, and withdrawals are tested. The separate unresolved limitation is
+parent-authorised royalty-rate enforcement, which the current implementation does not provide.
 
 ## 6.4 E4 — gas
 
@@ -1099,44 +1153,52 @@ congestion. These are local-chain numbers; mainnet L1 gas is higher and calldata
 
 ## 6.5 E5 — latency and sequential throughput
 
-Three independent 100-cycle runs were executed sequentially on an idle fresh Anvil node (`--port 8547`,
-no competing background processes), each receipt awaited:
+Four 100-cycle batches were executed sequentially on local Anvil. Each batch used a newly deployed
+B3 contract suite and awaited every transaction receipt. The first batch followed the E4 transaction
+measurements; the remaining batches measured latency only.
 
-- Run 1: 114.18 ms mean cycle, 8.76 sales/s;
-- Run 2: 147.35 ms mean cycle, 6.79 sales/s;
-- Run 3: 138.89 ms mean cycle, 7.20 sales/s;
-- **Median across three runs:** **138.89 ms** mean cycle time, **7.20 sales/s**.
+| Run | Mean cycle time | Sequential throughput |
+|---|---:|---:|
+| 1 | 39.96 ms | 25.03 sales/s |
+| 2 | 51.49 ms | 19.42 sales/s |
+| 3 | 71.20 ms | 14.04 sales/s |
+| 4 | 84.04 ms | 11.90 sales/s |
+| **Median across runs** | **61.35 ms** | **16.73 sales/s** |
 
-This is a local, single host, machine-dependent measurement with instant mining. Differences across
-runs reflect local host/RPC scheduling jitter rather than any effect of the contract changes. It is
-not a network throughput claim and says nothing about concurrent users, L1 block times, or wide-area
-latency. A production deployment would need a multi-node testbed and a concurrent workload, neither
-of which was run.
+These are local, single-host measurements with instant mining. The spread reflects host scheduling,
+RPC, and runtime warm-up effects; it is not evidence of a contract-level throughput change. They
+are not network-throughput claims and say nothing about concurrent users, L1 block times, or
+wide-area latency. A production deployment would require a multi-node testbed and concurrent
+workload, neither of which was evaluated. Per-run raw receipts are retained under
+`experiments/results/full_rerun_20261128/chain_run_1..4/`.
 
 ## 6.6 E6 — off-chain compute and storage
 
-The deterministic payload sizes (128-byte key wrap, 367-byte logical listing record, 399 bytes
-including the mapping key slot, and storage-parity byte totals) are unchanged; compute timings below
-reflect the idle-host re-run (`experiments/results/e6/summary.json`):
+The deterministic payload sizes (129-byte key wrap, 367-byte logical listing record, 399 bytes
+including the mapping key slot, and storage-model byte totals) are unchanged. Compute timings below
+come from the 28 November rerun (`experiments/results/full_rerun_20261128/e6/summary.json`):
 
 **Table 6.5. Encryption time by input size (mean of 10 runs).**
 
 | Input | Encryption time | Blocks `m` |
 |---|---:|---:|
-| 64 KiB | 21.96 ms | 64 |
-| 256 KiB | 81.32 ms | 256 |
-| 1 MiB | 244.49 ms | 1,024 |
-| 5 MiB | 1,414.49 ms | 5,120 |
-| 10 MiB | 3,495.70 ms | 10,240 |
+| 64 KiB | 12.681 ms | 64 |
+| 256 KiB | 43.245 ms | 256 |
+| 1 MiB | 189.239 ms | 1,024 |
+| 5 MiB | 1,033.216 ms | 5,120 |
+| 10 MiB | 2,008.809 ms | 10,240 |
 
-- ECIES key wrap (secp256k1, `eciesjs`): **128 bytes** (unchanged), **96.03 ms** mean over 100 runs (SD 7.00 ms).
+- ECIES key wrap (secp256k1, `eciesjs`): **129 bytes** (65-byte ephemeral public key, 16-byte IV, 32-byte ciphertext, 16-byte tag), **33.939 ms** mean over 100 runs (SD 7.697 ms).
   This is a JavaScript implementation cost, not a bound.
-- One-block consistency verification: **0.547 ms** mean (100 runs).
+- One-block consistency verification: **0.179 ms** mean (100 runs).
 - Logical on-chain record per asset: 367 bytes (the raw sum of the `Asset` struct fields in `AssetRegistry.sol`: 20 bytes seller address + 9 * 32 bytes commitments/hashes + 4 bytes m + 4 bytes blockSize + 8 bytes price + 2 bytes royaltyBps + 32 bytes parentAssetId + 1 byte active + 8 bytes listedAt), or 399 bytes when including the 32-byte `mapping(uint256 => Asset)` lookup key slot.
+
+Wall-clock timings vary across runs on the same host. Byte counts are deterministic; the compute
+timings are indicative, not a benchmark against a fixed baseline.
 
 **Storage model.** The ciphertext is stored once on IPFS in B0, B2, and B3. The published Ethereum
 B0 stores a per-buyer key string (`customerAddrToData[buyer].encryptedSymmetricKey`); B3 stores a
-128-byte wrapped key per sale. At 1,000 buyers, with a 5 MiB asset and a 128-byte B0 key assumption,
+129-byte wrapped key per sale. At 1,000 buyers, with a 5 MiB asset and a 128-byte B0 key assumption,
 the model is:
 
 **Table 6.6. Storage model at 1,000 buyers.**
@@ -1145,11 +1207,13 @@ the model is:
 |---|---:|
 | B0 | 5,370,880 |
 | B2 | 5,242,912 |
-| B3 | 5,370,880 |
+| B3 | 5,371,880 |
 
-**There is no storage saving to claim.** An earlier draft claimed a 976x reduction by assuming B0
-re-uploads the full asset per buyer. The published contract does not do that, so the claim is
-withdrawn. The comparison with B0 is about verification, dispute rights, and royalties, not bytes.
+**There is no storage saving to claim.** At 1,000 buyers B3 is 1,000 bytes (about 0.02%) *larger* than
+B0, because a 129-byte wrapped key is stored per sale against a 128-byte per-buyer key assumption for
+B0. An earlier draft claimed a 976x reduction by assuming B0 re-uploads the full asset per buyer. The
+published contract does not do that, so the claim is withdrawn. The comparison with B0 is about
+verification, dispute rights, and royalties, not bytes.
 
 ## 6.7 E7 — bond economics
 
@@ -1176,17 +1240,23 @@ The deterrence bound is the raw ratio `(1 - P_d)/P_d`. The required bond multipl
 | 0.70 | 0.43x | 1.00x | yes |
 | 0.90 | 0.11x | 1.00x | yes |
 
-The deterrence result is conditional on the model: a risk-neutral attacker, proportional costs, a
-known detection probability, and a solvent bond. It does not establish that sellers actually post
-such bonds, nor that `P_d` is known. At `P_d = 0.5` the attacker's expected profit is exactly zero
-before costs, so the "yes" is weak. For `P_d > 0.5`, the raw deterrence bound drops below 1.00x
-(e.g., 0.43x, 0.11x), but the protocol enforces `b_s ≥ p` (1.00x), guaranteeing that the bond is
-never smaller than the value in escrow.
+The rerun uses `c_g = 0` and `c_d = 0.1p`; `c_h = 0.1p` is used only for the reported honest-profit
+column. The script marks an attack deterred when its expected profit is negative. The result
+remains conditional on a risk-neutral attacker,
+proportional costs, a known detection probability, and a solvent bond. It does not establish that
+sellers actually post such bonds, nor that `P_d` is known. At `P_d = 0.5`, a 1.00x bond makes
+expected attack profit negative only because the model includes the positive defense cost; if that
+cost is ignored, deterrence is marginal. For `P_d > 0.5`, the raw ratio falls below 1.00x, but the
+solvency floor keeps the required bond at 1.00x.
 
 ## 6.8 E8 — perceptual-hash pilot
 
 The fingerprint experiment is a pilot on 80 public photographs from Picsum (Unsplash), 512×512, seeds
-1000..1079. The identity split is 32 calibration / 16 validation / 32 test, with seed 1234. There are
+1000..1079. In this rerun, the images were replayed from the successful prior-run manifest and
+validated local cache; external dataset download was unavailable. The image identities and split
+seed are unchanged. The image files are local experiment inputs and are not committed; a fresh
+checkout must reacquire them online or provide a local cache. The identity split is
+32 calibration / 16 validation / 32 test, with seed 1234. There are
 28 transformations, 896 test positive pairs, and 494 test negative pairs. Thresholds are selected on
 validation at the FPR closest to 1%.
 
@@ -1203,10 +1273,14 @@ validation at the FPR closest to 1%.
 Worst transformations (ensemble): `rotate_m15` 0.0%, `rotate_p15` 0.0%, `flip_h` 9.4%.
 Geometric-only TPR: pHash 57.0%, ensemble 54.6%.
 
-This is a **negative result for classical hashes as an originality detector**. The pre-registered
-hybrid (pHash + PDQ + DINOv2) was not built, so H6 is untested. H5 (pHash geometric TPR below 50%)
-is refuted at 57.0%. No AIGC dataset (Copydays, Holidays, Oxford5k, GenImage, DiffusionDB) was
-evaluated. These numbers must not be cited as AIGC robustness.
+**This is a strong negative result for classical hashes as an originality detector.** A matching
+score is not proof of semantic substitution or copy provenance: in this pilot, ±15-degree rotation
+and horizontal flip are effectively invisible to the ensemble, and the geometric-only pHash TPR is
+only 57.0%. The pre-registered hybrid (pHash + PDQ + DINOv2) was not built, so H6 is untested.
+H5 (pHash geometric TPR below 50%) is refuted at 57.0%. No AIGC dataset (Copydays, Holidays,
+Oxford5k, GenImage, DiffusionDB) was evaluated, and these photographs do not represent AIGC
+distribution, generation artefacts, or adversarially optimised substitutes. Accordingly, the
+results must not be extrapolated as evidence of AIGC robustness.
 
 The pilot also has a data-quality caveat: three duplicate-content groups were found in the 80
 images. The split is identity-level, but duplicate content across identities could inflate
@@ -1221,7 +1295,7 @@ should de-duplicate before splitting.
 |---|---|---|
 | RQ1 | 44-entry audit with file/function/line evidence | Done |
 | RQ2 | 78 Foundry tests, 20-scenario matrix, 3 invariants (65,536 calls) | Done for the implemented contract paths |
-| RQ3 | 30-run gas, 3x100-cycle idle latency, compute/storage model | Local only; no mainnet or multi-node |
+| RQ3 | 30-run gas, four 100-cycle latency runs, compute/storage model | Local only; no mainnet or multi-node |
 | RQ4 | Closed-form model and parameter sweep | Analytical; no market data |
 | RQ5 | 80-image, 28-transform classical-hash pilot | Pilot; no AIGC dataset or learned hashes |
 
@@ -1294,8 +1368,9 @@ one wrapped key per sale, so the storage is at parity. The earlier 976x claim as
 the asset per buyer; that assumption is false for the published contract. The thesis withdraws the
 claim.
 
-The latency result is local, single host, machine-dependent: 138.89 ms mean cycle, 7.20 sales/s
-sequential (median across three 100-cycle idle runs). It is a sanity check on the implementation,
+The latency result is local, single host, machine-dependent: 61.35 ms median of four run-mean
+cycle times, and 16.73 sales/s median of the four per-run throughputs (100 cycles per run; mean
+cycle range 39.96-84.04 ms). It is a sanity check on the implementation,
 not a throughput claim.
 
 ## 7.4 RQ4: when is honesty rational?
@@ -1317,11 +1392,15 @@ brightness, contrast, noise, blur) and weak under geometric transformations, esp
 horizontal flip. The ensemble reaches 76.8% TPR at 1.01% FPR overall, but 0% on ±15° rotation and
 9.4% on horizontal flip. Geometric-only pHash TPR is 57.0%.
 
-This is a negative result for using classical hashes as an originality detector. It does not mean
-perceptual hashing is useless: it is a cheap similarity signal, and it may be adequate for detecting
-near-duplicates under photometric changes. It does mean that a marketplace cannot rely on pHash
-alone for semantic correctness, and that the bond model must account for the transformations that
-evade detection.
+This is a **strong negative result against treating classical perceptual hashing as an AIGC
+originality or semantic-correctness proof**. It does not mean perceptual hashing is useless: it is
+a cheap similarity signal that may help triage near-duplicates under limited photometric changes.
+However, the 0% rotation and 9.4% flip TPR show that a malicious or innocent geometric edit can
+leave these hashes unable to detect the relationship, and the 57.0% geometric-only pHash TPR sets a
+very weak lower bound on detection in this pilot. Consequently, a marketplace cannot rely on pHash
+alone to identify copied, substituted, or misrepresented AIGC, and the bond model must use the
+transformation-specific detection probability, not an optimistic or dataset-wide average. The
+evidence supports only heuristic similarity assistance, not originality attribution.
 
 ## 7.6 Design tensions
 
@@ -1352,6 +1431,9 @@ measures the implemented design rather than optimizing it.
 - They do not establish formal correctness. The invariants and tests are evidence, not proof.
 - They do not establish that the licence semantics are sufficient for real AIGC licensing. Expiry,
   scope, revocation, and privacy are out of scope.
+- They do not establish that parent royalty rates are authorised or invariant: the prototype
+  transfers funds at the child's stored royalty rate, because parent-side rate validation remains
+  unresolved.
 
 ## 7.8 Ethical and legal considerations
 
@@ -1387,12 +1469,16 @@ integrity from semantic correctness and links the seller bond to the fingerprint
 probability.
 
 The prototype has five Solidity contracts, a 16-endpoint backend, an IPFS integration, a TypeScript
-cryptographic reference, a CLI, a watcher, and two baselines. It passes 99 tests (78 Foundry, 14
-backend, 7 watcher), blocks 17 of 20 executable attack scenarios, mitigates one by bond, and
-documents two residual risks. A per-sale cycle costs 455,384 gas; a Mode-1 dispute costs 243,048
-gas; the sequential throughput is 7.20 sales/s (median across three idle-host runs; local, single
-host, machine-dependent). Storage is at parity with the published baseline, not a reduction. The fingerprint pilot reaches 76.8% ensemble TPR at 1.01% FPR overall,
-but fails under rotation and horizontal flip, so it does not establish AIGC robustness.
+cryptographic reference, a CLI, a watcher, and two baselines. The evaluation record contains 99
+passing tests (78 Foundry, 14 backend, 7 watcher); this rerun reverified 85, while the 14 backend
+results remain from the prior run because Kubo was unavailable. It blocks 17 of 20 executable
+attack scenarios, mitigates one by bond, and documents two residual risks. A per-sale cycle costs
+455,384 gas; a Mode-1 dispute costs 243,048 gas; the four-run median sequential throughput is
+16.73 sales/s (local, single host, machine-dependent). Storage is at parity with the published
+baseline, not a reduction. The fingerprint pilot is a deliberately strong negative result: the classical-hash ensemble
+reaches 76.8% TPR at 1.01% test FPR overall, but achieves 0% TPR under ±15-degree rotation and
+9.4% under horizontal flip. It does not establish AIGC robustness or provenance and must not be
+presented as a reliable originality or plagiarism detector.
 
 The thesis is defensible as a systems and empirical security contribution. It is not a claim of a
 new cryptographic primitive, a formal verification, a production marketplace, or a trust-free
@@ -1513,7 +1599,7 @@ Authenticity," in *Proc. 16th Int. Conf. Electronics, Computers and Artificial I
 | Protocol design | `docs/PAPER_SECTIONS_FINAL.md`, `docs/MATHEMATICAL_FORMULATION.md` |
 | Contracts | `src/AssetRegistry.sol`, `src/SaleEscrow.sol`, `src/DisputeVerifier.sol`, `src/RoyaltySplitter.sol`, `src/LicenceToken.sol` |
 | Baselines | `src/baselines/NaiveEscrow.sol`, `src/baselines/FairSwapLite.sol` |
-| Foundry tests | `test/*.sol` (72 tests) |
+| Foundry tests | `test/*.sol` (78 tests) |
 | Backend | `api/src/` (16 endpoints + `/health`) |
 | Backend tests | `tests/backend.test.mjs` (14) |
 | Watcher | `watcher/watcher.ts` |
@@ -1531,7 +1617,7 @@ Authenticity," in *Proc. 16th Int. Conf. Electronics, Computers and Artificial I
 ```bash
 # Foundry
 forge build
-forge test                       # 72 tests
+forge test                       # 78 tests
 forge test --match-path test/Invariants.t.sol
 
 # Backend (requires Anvil + Kubo + server)
@@ -1580,6 +1666,8 @@ python experiments/e8_fingerprint.py --n-images 80 --seed 1234
 | AT-16 | Buyer stalls confirmation | blocked | `timeoutConfirm` pays seller |
 | AT-17 | Timestamp manipulation | blocked | Fixed windows; boundary test |
 | AT-30 | Reentrancy on payout | blocked | `nonReentrant` rejects reentry |
+| AT-31 | Late-respond time-bar | blocked | `respond` extends `T_confirm`; Mode 1 remains available |
+| AT-32 | Mode-2 re-challenge loop | blocked | Second `disputeMode2` reverts with `AlreadyChallenged` |
 
 ## Appendix D — Descriptive gas statistics
 

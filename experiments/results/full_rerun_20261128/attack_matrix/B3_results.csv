@@ -1,0 +1,21 @@
+attack_id,name,system,test,status,outcome,note
+AT-01,Consistent garbage listing,B3,testAT01_ConsistentGarbage(),passed,succeeds,residual: consistent garbage passes integrity; bond/fingerprint are off-chain
+AT-02,Inconsistent commitment,B3,testAT02_InconsistentCommitment(),passed,blocked,inconsistent plaintext/ciphertext proof refunds the buyer
+AT-03,Wrong key delivery,B3,testAT03_WrongKeyDelivery(),passed,blocked,mode-2 response rejects a key that does not match cK
+AT-04,Key before payment,B3,testAT04_KeyBeforePayment(),passed,blocked,no key material before payment; wrapped key posted at delivery
+AT-05,Re-initialisation,B3,testAT05_Reinitialization(),passed,blocked,no initializer; constructor wires the contracts
+AT-06,Price change after deposit,B3,testAT06_PriceChangeAfterDeposit(),passed,blocked,price is snapshotted at buy; registry change has no effect
+AT-07,De-listed asset trading,B3,testAT07_DelistedAssetPurchase(),passed,blocked,buy reverts on an inactive asset
+AT-08,Overpayment stranding,B3,testAT08_Overpayment(),passed,blocked,exact msg.value required; no stranded excess
+AT-09,Refund wiping,B3,testAT09_RefundWiping(),passed,blocked,state guards reject confirm/deliver after a refund
+AT-10,.transfer griefing,B3,testAT10_TransferGriefing(),passed,blocked,call{value:} pays gas-heavy receivers
+AT-11,False integrity dispute,B3,testAT11_FalseDispute(),passed,blocked,a false claim forfeits the buyer bond
+AT-12,Fabricated chunk proof,B3,testAT12_FabricatedProof(),passed,blocked,a leaf not rooted in R_D/R_C reverts
+AT-13,Dispute spam,B3,testAT13_DisputeSpam(),passed,mitigated,"buyer bond is forfeited, not prevention; seller is not paid extra"
+AT-14,Leak-by-dispute,B3,testAT14_LeakByDispute(),passed,succeeds,residual: K is public after a mode-2 dispute
+AT-15,Seller stalls after dispute,B3,testAT15_SellerStalls(),passed,blocked,timeoutRespond refunds after T_respond
+AT-16,Buyer stalls confirmation,B3,testAT16_BuyerStalls(),passed,blocked,timeoutConfirm pays the seller after T_confirm
+AT-17,Timestamp manipulation,B3,testAT17_TimestampManipulation(),passed,blocked,window constants; boundary behaves at T+/-15s
+AT-30,Reentrancy on payout,B3,testReentrancy(),passed,blocked,reentrant confirm is rejected by nonReentrant
+AT-31,Late-respond time-bar,B3,testAT31_LateRespondTimeBar(),passed,blocked,respond extends T_confirm by 1 day; timeoutConfirm blocked and buyer disputes Mode 1
+AT-32,Mode-2 re-challenge loop,B3,testAT32_RechallengeLoop(),passed,blocked,max one Mode-2 challenge per sale; second disputeMode2 reverts with AlreadyChallenged

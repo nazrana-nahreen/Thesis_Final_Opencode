@@ -2,7 +2,7 @@
 // ECIES key wrapping for CRC (per-buyer confidentiality).
 // Uses eciesjs (secp256k1-based), which matches Ethereum key material.
 
-import { encrypt, decrypt } from "eciesjs";
+import { encrypt, decrypt, PrivateKey } from "eciesjs";
 import { randomBytes } from "node:crypto";
 import { writeFileSync } from "node:fs";
 
@@ -49,19 +49,8 @@ if (process.argv[1]?.endsWith("keywrap.ts") || process.argv[1]?.endsWith("keywra
 }
 
 function generateKeyPair(): { privateKey: string; publicKey: string } {
-  // Use eciesjs's key generation if available, otherwise use a placeholder.
-  // eciesjs exports generateKeyPair in newer versions.
-  try {
-    const ecies = require("eciesjs");
-    if (typeof ecies.generateKeyPair === "function") {
-      const kp = ecies.generateKeyPair();
-      return { privateKey: kp.privateKey.toString("hex"), publicKey: kp.publicKey.toString("hex") };
-    }
-  } catch {}
-  // Fallback: generate with Node's crypto (secp256k1)
-  const { generateKeyPairSync } = require("node:crypto");
-  const kp = generateKeyPairSync("ec", { namedCurve: "secp256k1" });
-  const priv = kp.privateKey.export({ type: "sec1", format: "der" });
-  const pub = kp.publicKey.export({ type: "spki", format: "der" });
-  return { privateKey: priv.toString("hex"), publicKey: pub.toString("hex") };
+  // eciesjs 0.5 exposes PrivateKey; both values are raw secp256k1 material,
+  // unlike DER-encoded keys from node:crypto.
+  const kp = new PrivateKey();
+  return { privateKey: kp.toHex(), publicKey: kp.publicKey.toHex() };
 }

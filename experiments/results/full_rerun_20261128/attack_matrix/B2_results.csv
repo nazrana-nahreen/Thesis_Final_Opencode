@@ -1,0 +1,21 @@
+attack_id,name,system,test,status,outcome,note
+AT-01,Consistent garbage listing,B2,testB2_AT01_ConsistentGarbageAccepted(),passed,succeeds,commits to garbage consistently; no preview binding
+AT-02,Inconsistent commitment,B2,testB2_AT02_InconsistentCommitmentRefunded(),passed,blocked,one-block inconsistency proof refunds
+AT-03,Wrong key delivery,B2,testB2_AT03_WrongKeyRefunded(),passed,blocked,wrong key exposes a mismatch; buyer refunded
+AT-04,Key before payment,B2,,not_executed,not_tested,no matching Foundry test
+AT-05,Re-initialisation,B2,,not_executed,not_tested,no matching Foundry test
+AT-06,Price change after deposit,B2,,not_executed,not_tested,no matching Foundry test
+AT-07,De-listed asset trading,B2,,not_executed,not_tested,no matching Foundry test
+AT-08,Overpayment stranding,B2,,not_executed,not_tested,no matching Foundry test
+AT-09,Refund wiping,B2,,not_executed,not_tested,no matching Foundry test
+AT-10,.transfer griefing,B2,,not_executed,not_tested,no matching Foundry test
+AT-11,False integrity dispute,B2,testB2_AT11_FalseDisputeRejected(),passed,blocked,consistent content reverts the claim
+AT-12,Fabricated chunk proof,B2,testB2_AT12_FabricatedProofRejected(),passed,blocked,fabricated block fails the Merkle check
+AT-13,Dispute spam,B2,,not_executed,not_tested,no matching Foundry test
+AT-14,Leak-by-dispute,B2,testB2_AT14_KeyPublicAfterEverySale(),passed,succeeds,K is revealed publicly on every sale
+AT-15,Seller stalls after dispute,B2,testB2_AT15_TimeoutRevealRefunds(),passed,blocked,timeoutReveal refunds
+AT-16,Buyer stalls confirmation,B2,testB2_AT16_TimeoutConfirmPaysSeller(),passed,blocked,timeoutConfirm pays the seller
+AT-17,Timestamp manipulation,B2,,not_executed,not_tested,no matching Foundry test
+AT-30,Reentrancy on payout,B2,,not_executed,not_tested,no matching Foundry test
+AT-31,Late-respond time-bar,B2,,not_executed,not_tested,no matching Foundry test
+AT-32,Mode-2 re-challenge loop,B2,,not_executed,not_tested,no matching Foundry test

@@ -109,12 +109,12 @@
 | S-09 | F13 | **Exact payment + per-sale escrow + pull payment** — `msg.value == price + BUYER_BOND`; no shared mutable balance; `call{value:}` not `.transfer` | `SaleEscrow.buy`, `_pay`, `RoyaltySplitter` | `Adversarial.t.sol`, `Invariants.t.sol` | ✅ |
 | S-10 | F16 | **Royalty capped at 5000 bps**; child-set rate documented as limitation (not parent-authorised) | `AssetRegistry.list`, `SaleEscrow._settle` | `Adversarial.t.sol` | ◐ |
 | S-11 | F20 | **Correct ECIES naming and construction** — secp256k1, not "ECDSA_enc" | `crypto/keywrap.ts` | `keywrap.ts` | ✅ |
-| S-12 | F27 | **Full honest-cycle gas measurement reported** - 456,691 gas (30-run mean), not a partial sum | experiments/run_chain_experiments.mjs | experiments/results/chain/ | OK |
+| S-12 | F27 | **Full honest-cycle gas measurement reported** - 455,384 gas (30-run mean), not a partial sum | experiments/run_chain_experiments.mjs | experiments/results/chain/ | OK |
 | S-13 | F2, F3 | **Fair-exchange literature integrated** — CRC positioned as FairSwap-inspired adaptation, not a new protocol | `docs/LITERATURE_REVIEW.md`, paper §II-D | Literature review PDF | ✅ |
 | S-14 | F1 | **Explicit trust set TA1–TA12** — "trust-free" claim withdrawn and replaced by enumerated assumptions | `docs/THREAT_MODEL.md` | Paper §III-D | ✅ |
 | S-15 | F23 | **Adversary model + security objectives + proof sketches** — no formal verification claimed | `docs/THREAT_MODEL.md`, `docs/MATHEMATICAL_FORMULATION.md` | — | ◐ |
 | S-16 | F25 | **Bond-sizing incentive-compatibility model** — `b_s > ((1−P_d)/P_d)·p` with stated assumptions | `docs/MATHEMATICAL_FORMULATION.md` §10 | — | ◐ |
-| S-17 | F29, F31 | **Executable attack harness** — 18 scenarios (AT-01..17 + AT-30), 15 blocked, 1 mitigated, 2 documented residual | `harness/attack_harness.py` | `harness/results/` | ◐ |
+| S-17 | F29, F31 | **Executable attack matrix** - 20 scenarios (AT-01..17 + AT-30..32), 17 blocked, 1 mitigated, 2 documented residual | `harness/attack_harness.py` | `harness/results/` | ◐ |
 | S-18 | F31 | **Cryptographic test vectors** — RFC 4231 HMAC-SHA256 (cases 1–4), NIST SHA-256, Merkle index binding | `CryptoVectors.t.sol` (10 tests) | `forge test` | ◐ |
 | S-19 | F6, F11 | **Integrity vs semantic correctness separated** — integrity cryptographic, no trusted arbitrator; semantic probabilistic (preview + pHash signal + bond) | Paper §XI-E, `docs/THREAT_MODEL.md` | — | ✅ (conceptual) |
 | S-20 | F22 | **Fixed-size commitments on-chain** — only hashes, roots, and CIDs on-chain; no unbounded content | `AssetRegistry` struct | — | ✅ |

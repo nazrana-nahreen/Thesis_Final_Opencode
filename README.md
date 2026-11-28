@@ -20,13 +20,13 @@ MetaTrade (IEEE Access 2024) claims trust-free AIGC trading but its settlement c
 ```
 metatrade-r/
 ├── src/                    # 5 Solidity contracts (Foundry)
-├── test/                   # 7 Solidity test suites (72 tests)
+├── test/                   # 7 Solidity test suites (78 tests)
 ├── script/                 # Deployment script
 ├── crypto/                 # TypeScript crypto (HMAC, Merkle, encryption, ECIES)
 ├── api/src/                # Fastify backend (16 endpoints + /health)
 ├── tests/                  # Backend (14) and watcher (7) integration tests
 ├── audit/                  # Audit reports
-├── harness/                # Attack matrix runner (18 scenarios, executes Foundry)
+├── harness/                # Attack matrix runner (20 scenarios, executes Foundry)
 ├── watcher/                # Event watcher (checkpoint, timeout scan)
 ├── experiments/            # E3-E8 runners and measured results
 ├── validation/             # Validation report
@@ -86,7 +86,7 @@ ipfs init
 # Compile Solidity
 forge build
 
-# Run Solidity tests (72 tests)
+# Run Solidity tests (78 tests)
 forge test
 
 # Run backend tests (14 tests)
@@ -98,14 +98,22 @@ node --test tests/backend.test.mjs
 npx tsc --noEmit
 ```
 
+### Build the PDFs
+
+```bash
+# Regenerates the three committed PDFs under docs/ using scripts/pdf-config.json.
+# Requires network access the first time (npx downloads md-to-pdf) and local Chrome.
+node scripts/build_pdfs.mjs
+```
+
 ### Run the full system
 
 ```bash
 # 1. Start Anvil
 anvil --host 0.0.0.0 --port 8545
 
-# 2. Deploy contracts
-node scripts/deploy.mjs
+# 2. Deploy contracts and write their addresses into .env
+node scripts/deploy.mjs --write-env
 
 # 3. Start IPFS
 ipfs daemon
@@ -134,36 +142,40 @@ A scenario is only listed when a matching test exists; nothing is hard-coded.
 | CryptoVectors (RFC 4231, NIST, Merkle) | 10 | PASS |
 | E2E | 2 | PASS |
 | Invariants (fuzz) | 1 suite, 3 invariants | PASS |
-| Adversarial (AT-01..AT-17, AT-30) | 28 | PASS |
+| Adversarial (AT-01..AT-17, AT-30..AT-32) | 34 | PASS |
 | Baselines (B1/B2) | 12 | PASS |
 | GasBenchmark | 12 | PASS |
-| Backend (Node.js) | 14 | PASS |
+| Backend (Node.js) | 14 | Prior recorded run passed; not reverified in latest rerun |
 | Watcher (Node.js + Anvil) | 7 | PASS |
-| **Total** | **93** | **All pass** |
+| **Total** | **99 recorded** | **85 reverified in latest rerun; 14 backend results are historical** |
+
+The latest rerun could not repeat the backend suite because Kubo was unavailable. Do not interpret
+the 14 backend passes as a fresh result from that rerun.
 
 Measured numbers and scope: `docs/MEASURED_RESULTS.md`. Gas is a 30-run
 mean/median/SD/p95 on a local chain; the fingerprint study is an 80-image
 classical-hash pilot; storage is at parity with the published baseline.
 
-Attack scenarios: 18 executable (AT-01..AT-17 plus AT-30), 15 blocked,
+Attack scenarios: 20 executable (AT-01..AT-17 plus AT-30..AT-32), 17 blocked,
 1 mitigated by the buyer bond, 2 residual (documented). AT-18..AT-29 are not
 settlement-contract tests and are not counted.
 
 Run `node scripts/verify_all.mjs` for Foundry + watcher + backend, or add
-`--full` for the attack matrix and E4–E8.
+`--full` for the attack matrix and E4–E8. The `--full` run uses default result paths; back up
+existing artifacts first. E8 tries live dataset acquisition unless `--offline-manifest` is supplied.
 
 ## Gas Measurements (30 repetitions, local Anvil)
 
 | Operation | Mean gas | n |
 |---|---:|---:|
-| Per-sale cycle (buy + deliver + confirm) | 456,691 | 30 |
-| List | 181,647 | 50 |
-| Buy | 182,100 | 50 |
-| Deliver (100-byte key) | 146,373 | 50 |
-| Confirm | 128,218 | 30 |
-| Mode 1 dispute | 241,278 | 10 |
-| Mode 2 dispute | 33,160 | 10 |
-| Respond | 158,443 | 10 |
+| Per-sale cycle (buy + deliver + confirm) | 455,384 | 30 |
+| List | 181,646 | 30 |
+| Buy | 182,350 | 30 |
+| Deliver (100-byte key) | 145,295 | 30 |
+| Confirm | 127,739 | 30 |
+| Mode 1 dispute | 243,048 | 10 |
+| Mode 2 dispute | 55,321 | 10 |
+| Respond | 141,636 | 10 |
 
 The old single-run figures (448,119 cycle; 324,580 Mode 1; 83,044 deliver)
 are superseded. The deliver number depends on the wrapped-key length.

@@ -55,7 +55,7 @@ for (let i = 0; i < 100; i++) {
   wrapped = wrapKey(K, pubHex);
   wrapTimes.push(performance.now() - t0);
 }
-const wrapBytes = (wrapped.length - 2) / 2;
+const wrapBytes = wrapped.startsWith("0x") ? (wrapped.length - 2) / 2 : wrapped.length / 2;
 console.log(`ECIES wrap: ${wrapBytes} bytes, ${stats(wrapTimes).mean} ms`);
 
 // Logical on-chain bytes per asset (struct fields, excluding mapping slot/padding).

@@ -1,0 +1,182 @@
+[
+  {
+    "attack_id": "AT-01",
+    "name": "Consistent garbage listing",
+    "system": "B3",
+    "test": "testAT01_ConsistentGarbage()",
+    "status": "passed",
+    "outcome": "succeeds",
+    "note": "residual: consistent garbage passes integrity; bond/fingerprint are off-chain"
+  },
+  {
+    "attack_id": "AT-02",
+    "name": "Inconsistent commitment",
+    "system": "B3",
+    "test": "testAT02_InconsistentCommitment()",
+    "status": "passed",
+    "outcome": "blocked",
+    "note": "inconsistent plaintext/ciphertext proof refunds the buyer"
+  },
+  {
+    "attack_id": "AT-03",
+    "name": "Wrong key delivery",
+    "system": "B3",
+    "test": "testAT03_WrongKeyDelivery()",
+    "status": "passed",
+    "outcome": "blocked",
+    "note": "mode-2 response rejects a key that does not match cK"
+  },
+  {
+    "attack_id": "AT-04",
+    "name": "Key before payment",
+    "system": "B3",
+    "test": "testAT04_KeyBeforePayment()",
+    "status": "passed",
+    "outcome": "blocked",
+    "note": "no key material before payment; wrapped key posted at delivery"
+  },
+  {
+    "attack_id": "AT-05",
+    "name": "Re-initialisation",
+    "system": "B3",
+    "test": "testAT05_Reinitialization()",
+    "status": "passed",
+    "outcome": "blocked",
+    "note": "no initializer; constructor wires the contracts"
+  },
+  {
+    "attack_id": "AT-06",
+    "name": "Price change after deposit",
+    "system": "B3",
+    "test": "testAT06_PriceChangeAfterDeposit()",
+    "status": "passed",
+    "outcome": "blocked",
+    "note": "price is snapshotted at buy; registry change has no effect"
+  },
+  {
+    "attack_id": "AT-07",
+    "name": "De-listed asset trading",
+    "system": "B3",
+    "test": "testAT07_DelistedAssetPurchase()",
+    "status": "passed",
+    "outcome": "blocked",
+    "note": "buy reverts on an inactive asset"
+  },
+  {
+    "attack_id": "AT-08",
+    "name": "Overpayment stranding",
+    "system": "B3",
+    "test": "testAT08_Overpayment()",
+    "status": "passed",
+    "outcome": "blocked",
+    "note": "exact msg.value required; no stranded excess"
+  },
+  {
+    "attack_id": "AT-09",
+    "name": "Refund wiping",
+    "system": "B3",
+    "test": "testAT09_RefundWiping()",
+    "status": "passed",
+    "outcome": "blocked",
+    "note": "state guards reject confirm/deliver after a refund"
+  },
+  {
+    "attack_id": "AT-10",
+    "name": ".transfer griefing",
+    "system": "B3",
+    "test": "testAT10_TransferGriefing()",
+    "status": "passed",
+    "outcome": "blocked",
+    "note": "call{value:} pays gas-heavy receivers"
+  },
+  {
+    "attack_id": "AT-11",
+    "name": "False integrity dispute",
+    "system": "B3",
+    "test": "testAT11_FalseDispute()",
+    "status": "passed",
+    "outcome": "blocked",
+    "note": "a false claim forfeits the buyer bond"
+  },
+  {
+    "attack_id": "AT-12",
+    "name": "Fabricated chunk proof",
+    "system": "B3",
+    "test": "testAT12_FabricatedProof()",
+    "status": "passed",
+    "outcome": "blocked",
+    "note": "a leaf not rooted in R_D/R_C reverts"
+  },
+  {
+    "attack_id": "AT-13",
+    "name": "Dispute spam",
+    "system": "B3",
+    "test": "testAT13_DisputeSpam()",
+    "status": "passed",
+    "outcome": "mitigated",
+    "note": "buyer bond is forfeited, not prevention; seller is not paid extra"
+  },
+  {
+    "attack_id": "AT-14",
+    "name": "Leak-by-dispute",
+    "system": "B3",
+    "test": "testAT14_LeakByDispute()",
+    "status": "passed",
+    "outcome": "succeeds",
+    "note": "residual: K is public after a mode-2 dispute"
+  },
+  {
+    "attack_id": "AT-15",
+    "name": "Seller stalls after dispute",
+    "system": "B3",
+    "test": "testAT15_SellerStalls()",
+    "status": "passed",
+    "outcome": "blocked",
+    "note": "timeoutRespond refunds after T_respond"
+  },
+  {
+    "attack_id": "AT-16",
+    "name": "Buyer stalls confirmation",
+    "system": "B3",
+    "test": "testAT16_BuyerStalls()",
+    "status": "passed",
+    "outcome": "blocked",
+    "note": "timeoutConfirm pays the seller after T_confirm"
+  },
+  {
+    "attack_id": "AT-17",
+    "name": "Timestamp manipulation",
+    "system": "B3",
+    "test": "testAT17_TimestampManipulation()",
+    "status": "passed",
+    "outcome": "blocked",
+    "note": "window constants; boundary behaves at T+/-15s"
+  },
+  {
+    "attack_id": "AT-30",
+    "name": "Reentrancy on payout",
+    "system": "B3",
+    "test": "testReentrancy()",
+    "status": "passed",
+    "outcome": "blocked",
+    "note": "reentrant confirm is rejected by nonReentrant"
+  },
+  {
+    "attack_id": "AT-31",
+    "name": "Late-respond time-bar",
+    "system": "B3",
+    "test": "testAT31_LateRespondTimeBar()",
+    "status": "passed",
+    "outcome": "blocked",
+    "note": "respond extends T_confirm by 1 day; timeoutConfirm blocked and buyer disputes Mode 1"
+  },
+  {
+    "attack_id": "AT-32",
+    "name": "Mode-2 re-challenge loop",
+    "system": "B3",
+    "test": "testAT32_RechallengeLoop()",
+    "status": "passed",
+    "outcome": "blocked",
+    "note": "max one Mode-2 challenge per sale; second disputeMode2 reverts with AlreadyChallenged"
+  }
+]

@@ -1,15 +1,18 @@
 # E8 - Perceptual-hash robustness (pilot)
 
-Generated (UTC): `2026-11-27T15:44:22.956252+00:00`  
-Command: `python.exe experiments/e8_fingerprint.py --n-images 80 --seed 1234`  
-Runtime: download 14.6s, evaluation 35.3s.
+Generated (UTC): `2026-11-28T14:15:35.940653+00:00`
+
+Command: `python.exe experiments\e8_fingerprint.py --n-images 80 --seed 1234 --offline-manifest experiments\results\e8\e8_fingerprint.json --out experiments\results\e8`
+
+Runtime: data acquisition 0.4s, evaluation 14.8s.
 
 > **Scope.** Pilot on 80 public web photographs (Picsum/Unsplash). This is **not** Copydays, INRIA Holidays, Oxford5k, DiffusionDB or GenImage, and it does **not** evaluate PDQ, CLIP or DINOv2. Results do not establish AIGC-specific robustness. See Scope and Limitations.
 
 ## 1. Dataset
 
 - Source: Picsum Photos (https://picsum.photos), photographs from Unsplash.
-- Requested 80 seeds; downloaded **80** (failed: 0).
+- Replayed **80** cached images from the prior manifest; no network download was attempted (failed: 0).
+- Cached source images are local inputs and are not tracked in the repository; a fresh checkout needs a local cache or network access for acquisition.
 - Seeds: 1000..1079 (contiguous, n=80), size 512x512 RGB JPEG.
 - Global distinct-identity pairs: 3157.
 
@@ -138,4 +141,4 @@ None. All transformations and hashes completed for every validation/test identit
 - `e8_fingerprint.json` - full configuration, counts, metrics, CIs, seeds.
 - `e8_per_transform.csv` - per-method, per-transformation TPR table.
 - `e8_operating_points.png` - test operating points (optional plot).
-- `images/` - 80 downloaded originals.
+- `images/` - 80 normalized original images.

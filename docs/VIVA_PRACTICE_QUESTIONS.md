@@ -187,28 +187,28 @@ This guide is designed for the final thesis defense of **MetaTrade-R: A Defensib
 
 ### Q23: Summarize your test suite execution results.
 * **English Model Answer:**  
-  Our test suite comprises 93 comprehensive tests, all executing with a 100% pass rate:
-  - **72 Foundry tests:** Including unit tests, cryptographic vector tests, baseline tests, and stateful fuzz invariant tests (256 runs $\times$ 256 depth).
-  - **14 Fastify backend tests:** Verifying health, multipart uploads, IPFS pinning, and REST API validation.
+  The recorded suite has 99 passing test results. In the latest rerun, 85 were reverified:
+  - **78 Foundry tests:** Including unit tests, cryptographic vector tests, baseline tests, and stateful fuzz invariant tests (256 runs $\times$ 256 depth).
+  - **14 Fastify backend tests:** Passed in a prior run but not rerun because Kubo was unavailable.
   - **7 Watcher integration tests:** Verifying persistent JSON checkpointing, event deduplication, and automated on-chain timeout submissions.
 * **Bangla Summary:**  
-  আমাদের মোট ৯৩টি স্বয়ংক্রিয় টেস্ট রয়েছে এবং সবগুলো সফলভাবে পাস করেছে: ৭২টি ফাউन्ड্রি টেস্ট (যার মধ্যে ইনভ্যারিয়েন্ট ফাজিং অন্তর্ভুক্ত), ১৪টি ব্যাকএন্ড এপিআই টেস্ট, এবং ৭টি অটোমেটিক ওয়াচার টেস্ট।
+  রেকর্ডকৃত টেস্ট ফল ৯৯টি পাস; সর্বশেষ rerun-এ ৮৫টি পুনরায় যাচাই হয়েছে—৭৮টি Foundry ও ৭টি watcher test। ১৪টি backend test আগের run-এ পাস করেছিল, তবে Kubo অনুপস্থিত থাকায় এবার পুনরায় চালানো যায়নি.
 
 ### Q24: What were the measured gas costs for the honest execution path?
 * **English Model Answer:**  
-  Over 30 deterministic benchmarking repetitions on local EVM:
-  - `buy()`: 201,380 gas (escrow creation, bond deposit)
-  - `deliver()`: 83,410 gas (wrapped key and commitment storage)
-  - `confirm()`: 163,329 gas (settlement, royalty credit, licence NFT minting)
-  - **Total Honest Cycle:** 448,119 gas.
+  Over 30 repetitions on a local Anvil chain, with a 100-byte wrapped key:
+  - `buy()`: 182,350 gas mean (escrow creation, bond deposit)
+  - `deliver()`: 145,295 gas mean (wrapped key and commitment storage)
+  - `confirm()`: 127,739 gas mean (settlement, royalty credit, licence NFT minting)
+  - **Total Honest Cycle:** 455,384 gas mean (median 457,508).
   This represents an acceptable, predictable overhead for securing high-value digital asset trades.
 * **Bangla Summary:**  
   ৩০ বার টেস্ট চালিয়ে আমরা দেখেছি: বায় করতে লাগে ২.০১ লাখ গ্যাস, ডেলিভারিতে ৮৩ হাজার, আর কনফার্মেশনে ১.৬৩ লাখ। একটি সম্পূর্ণ সৎ লেনদেনে সর্বমোট খরচ হয় ৪ লাখ ৪৮ হাজার ১১৯ গ্যাস।
 
 ### Q25: How many attack scenarios did you evaluate in your Attack Matrix, and what were the results?
 * **English Model Answer:**  
-  We evaluated 18 distinct threat scenarios ($AT_1$ to $AT_{17}$, plus $AT_{30}$):
-  - **15 Blocked:** Completely rejected by on-chain cryptographic checks or contract assertions (e.g., non-delivery, false disputes, fabricated Merkle proofs, replay, unauthorized mints).
+  We evaluated 20 distinct threat scenarios ($AT_1$ to $AT_{17}$, plus $AT_{30}$, $AT_{31}$ and $AT_{32}$):
+  - **17 Blocked:** Completely rejected by on-chain cryptographic checks or contract assertions (e.g., non-delivery, false disputes, fabricated Merkle proofs, replay, unauthorized mints).
   - **1 Mitigated:** $AT_{13}$ (Dispute Spam) — mitigated economically because each frivolous dispute costs the attacker a full buyer bond.
   - **2 Residual Risks:** Explicitly documented as unpreventable in optimistic designs:
     1. $AT_{01}$ (Consistent Garbage): If the seller encrypts random garbage that matches the published Merkle root, the contract cannot know the image is visually useless.
@@ -338,9 +338,9 @@ This guide is designed for the final thesis defense of **MetaTrade-R: A Defensib
 
 ### Q43: What was the sequential throughput measured in Experiment E5?
 * **English Model Answer:**  
-  Over 100 consecutive honest sale cycles on our local chain benchmark, the mean cycle time was $109.32\text{ ms}$, corresponding to a sequential throughput of $9.15\text{ sales/second}$. This demonstrates that protocol overhead is bounded and suitable for real-time digital asset trading.
+  Across four sequential 100-cycle runs on one local Anvil process, mean cycle time ranged from 39.96 to 84.04 ms and throughput from 11.90 to 25.03 sales/s. The median run-mean cycle time was 61.35 ms and the median per-run throughput was 16.73 sales/s. This is host- and load-dependent and is not a network-throughput claim.
 * **Bangla Summary:**  
-  ১০০টি পূর্ণাঙ্গ সাইকেল চালিয়ে দেখা গেছে প্রতিটি লেনদেন চক্র শেষ হতে গড়ে ১০৯ মিলি-সেকেন্ড সময় লাগে, অর্থাৎ প্রতি সেকেন্ডে ৯.১৫টি সেল সম্পন্ন হতে পারে।
+  একই local Anvil process-এ চারটি ১০০-cycle run করা হয়েছে। run-গুলোর median mean-cycle time ৬১.৩৫ ms এবং median throughput ১৬.৭৩ sales/s; এটি local host-এর পরিমাপ, network throughput নয়.
 
 ### Q44: Why is HMAC-CTR considered "Confidentiality Only" rather than Authenticated Encryption (AEAD)?
 * **English Model Answer:**  
@@ -398,9 +398,9 @@ This guide is designed for the final thesis defense of **MetaTrade-R: A Defensib
 
 ### Q52: Concluding Statement: Why should the examination committee accept MetaTrade-R?
 * **English Model Answer:**  
-  "MetaTrade-R demonstrates academic rigor by replacing unproven marketing claims with reproducible engineering. We identified 15 concrete vulnerabilities in the leading IEEE literature, designed an incentive-compatible cryptographic fair-exchange protocol, implemented 5 verified smart contracts, and validated our claims through 93 automated tests, 18 attack vectors, and 30-run gas benchmarks. We openly document our residual risks and negative results. It is an honest, mathematically sound, and empirically verified research contribution."
+  "MetaTrade-R demonstrates academic rigor by replacing unsupported claims with reproducible engineering. We recorded 44 catalogue entries in the published work, designed a content-binding fair-exchange protocol, implemented five Solidity contracts, and evaluated it with 85 tests reverified in the latest rerun, 20 executable attack scenarios, and repeated gas benchmarks. Fourteen backend passes are from a prior run and remain unverified in the latest rerun. We openly document residual risks and negative results. It is an empirically evaluated research prototype, not a production or formal-security proof."
 * **Bangla Summary:**  
-  "মেটাট্রেড-আর কোনো ফাঁকা দাবির ওপর দাঁড়িয়ে নেই—এটি একটি বৈজ্ঞানিকভাবে পরীক্ষিত ও প্রমাণিত গবেষণা। আমরা বেস পেপারের ১৫টি মারাত্মক দুর্বলতা চিহ্নিত করেছি, ৫টি স্মার্ট কন্ট্রাক্ট তৈরি করেছি, ৯৩টি স্বয়ংক্রিয় টেস্টে ১০০% পাস করিয়েছি এবং ১৮টি সাইবার অ্যাটাক বিশ্লেষণ করেছি। প্রতিটি সীমাবদ্ধতা আমরা সততার সাথে তুলে ধরেছি। তাই এটি একটি সম্পূর্ণ ডিফেন্ডেবল এবং উচ্চমানের থিসিস।"
+  "মেটাট্রেড-আর একটি পরীক্ষিত research prototype, formal proof বা production system নয়। সর্বশেষ rerun-এ ৮৫টি test pass পুনরায় যাচাই হয়েছে; ১৪টি backend test-এর pass আগের run-এর ফল। ২০টি executable attack scenario-র মধ্যে ১৭টি blocked, ১টি mitigated এবং ২টি residual। সীমাবদ্ধতা ও negative result-গুলোও স্পষ্টভাবে জানানো হয়েছে।"
 
 ---
 
@@ -408,11 +408,11 @@ This guide is designed for the final thesis defense of **MetaTrade-R: A Defensib
 
 | Topic | Metric / Fact |
 |---|---|
-| **Base Paper Audited** | Truong et al., IEEE Access 2024 (15 Vulnerabilities Found) |
-| **Total Automated Tests** | 93 tests (72 Foundry + 14 Backend + 7 Watcher), 100% Pass Rate |
-| **Attack Scenarios** | 18 scenarios: 15 Blocked, 1 Mitigated, 2 Residual |
-| **Honest Sale Gas** | 448,119 gas (~$0.01 on L2) |
-| **Dispute Mode 1 Gas** | 324,580 gas (Fraud Proof on-chain) |
+| **Base Paper Audited** | Truong et al., IEEE Access 2024 (44 catalogue entries, F1-F44) |
+| **Test Results** | 99 recorded passes; 85 reverified in latest rerun, 14 backend passes historical |
+| **Attack Scenarios** | 20 scenarios: 17 Blocked, 1 Mitigated, 2 Residual |
+| **Honest Sale Gas** | 455,384 gas mean (30 runs, local Anvil) |
+| **Dispute Mode 1 Gas** | 243,048 gas mean (integrity proof on-chain) |
 | **Cryptographic PRF** | HMAC-SHA256 via EVM Precompile `0x02` |
 | **Storage Architecture** | Off-chain IPFS (Kubo 0.32.1) + On-chain Dual Merkle Root |
 | **Key Innovation** | CRC (Per-buyer wrapped keys preventing resale leakage) |

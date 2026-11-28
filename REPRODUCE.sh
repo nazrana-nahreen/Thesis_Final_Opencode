@@ -65,17 +65,17 @@ else
 fi
 echo ""
 
-# 6. Deploy contracts
-echo "=== Deploying contracts ==="
-node scripts/deploy.mjs
-echo ""
-
-# 7. Configure backend
+# 6. Configure backend .env (must exist before deployment writes addresses)
 echo "=== Configuring backend ==="
 if [ ! -f .env ]; then
     cp .env.example .env
-    echo "Created .env from .env.example. Edit with deployed addresses."
+    echo "Created .env from .env.example."
 fi
+echo ""
+
+# 7. Deploy contracts and write their addresses into .env
+echo "=== Deploying contracts ==="
+node scripts/deploy.mjs --write-env
 echo ""
 
 # 8. Start backend
@@ -108,4 +108,3 @@ echo ""
 
 echo "=== Reproduction complete ==="
 echo "Logs and outputs are in harness/results/, .gas-snapshot, and the console above."
-EOF
